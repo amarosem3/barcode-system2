@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ROLLCALL - Lecturer View</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0a0f1f; font-family: 'Inter', sans-serif; color: white; padding: 1rem; }
+        .header { background: linear-gradient(135deg, #00f2fe, #4facfe); border-radius: 28px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .header h1 { font-size: 1.8rem; display: flex; align-items: center; gap: 0.5rem; }
+        .nav-buttons { display: flex; gap: 0.8rem; }
+        .nav-btn { background: rgba(255,255,255,0.15); border: none; padding: 0.5rem 1rem; border-radius: 40px; color: white; cursor: pointer; text-decoration: none; font-size: 0.9rem; }
+        .nav-btn:hover { background: rgba(255,255,255,0.3); }
+        .controls { display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 1.5rem; gap: 1rem; background: rgba(20,27,43,0.6); padding: 0.8rem 1.2rem; border-radius: 40px; }
+        .filter-group { display: flex; gap: 0.8rem; }
+        select, input { background: #1e2740; border: 1px solid #2a3442; padding: 0.5rem 1rem; border-radius: 30px; color: white; }
+        .refresh-btn, .logout-btn { background: #00f2fe; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; font-weight: 600; color: #0a0f1f; cursor: pointer; }
+        .logout-btn { background: rgba(255,23,68,0.2); color: #ff8a8a; border: 1px solid #ff1744; }
+        .lecturer-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem; }
+        .card { background: rgba(20,27,43,0.8); border-radius: 24px; border: 1px solid #2a3442; overflow: hidden; }
+        .card-header { background: linear-gradient(135deg, #1a2335, #0f172a); padding: 1rem; border-bottom: 2px solid #00f2fe; }
+        .students-list { max-height: 350px; overflow-y: auto; padding: 0.5rem; }
+        .student-row { display: flex; justify-content: space-between; align-items: center; padding: 0.7rem 0.5rem; border-bottom: 1px solid #2a3442; }
+        .status-badge { padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 0.3rem; }
+        .status-badge.present { background: rgba(0,230,118,0.2); color: #00e676; }
+        .status-badge.late { background: rgba(255,165,0,0.2); color: #ffa500; }
+        .status-badge.absent { background: rgba(255,23,68,0.2); color: #ff8a8a; }
+        .card-footer { background: #0f172a; padding: 0.6rem; text-align: center; font-size: 0.75rem; }
+        .no-data { text-align: center; padding: 2rem; color: #a0a8c0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-chalkboard-user"></i> Lecturer View</h1>
+        <div class="nav-buttons">
+            <a href="index.html" id="homeBtn" class="nav-btn"><i class="fas fa-home"></i> Home</a>
+            <a href="attendance_list.html" class="nav-btn"><i class="fas fa-list"></i> Attendance Log</a>
+            <button class="nav-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="filter-group">
+            <select id="classFilter"><option value="all">All Classes</option></select>
+            <input type="text" id="searchInput" placeholder="Search student...">
+        </div>
+        <button class="refresh-btn" onclick="loadData()"><i class="fas fa-sync-alt"></i> Refresh</button>
+    </div>
+
+    <div id="lecturerGrid" class="lecturer-grid">Loading...</div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAVnzKkl-GtHziHbw6SAdfftVnFkM5xm7E",
+            authDomain: "barcode-2591e.firebaseapp.com",
+            projectId: "barcode-2591e",
+            storageBucket: "barcode-2591e.firebasestorage.app",
+            messagingSenderId: "206115727840",
+            appId: "1:206115727840:web:79c3b16d866782397ba385"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        if (!sessionStorage.getItem('loggedIn')) window.location.href = 'login.html';
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        });
+
+        const lecturerNames = {
+            "DFK1A": "Dr. Ahmad Faizal", "DFK1B": "Pn. Siti Aminah", "DFK2A": "En. Mohd Rizal",
+            "DFK2B": "Pn. Zuraidah", "DFK3A": "Dr. Farah Izzati", "DFK3B": "En. Hafizuddin",
+            "DFK4A": "Pn. Aisyah Humaira", "DFK4B": "Dr. Kamarul Azman", "DFK5A": "En. Azman Hafiz",
+            "DFK5B": "Pn. Nor Azlina", "DFK6A": "Dr. Liza Marlina", "DFK6B": "En. Hakimi",
+            "DFK7A": "Pn. Rosnah", "DFK7B": "Dr. Amir Hamzah"
+        };
+
+        let allStudents = [], allAttendance = [];
+        let attendanceMap = new Map(); // student_id -> { status, time }
+
+        function toMalaysiaTime(utcDate) {
+            if (!utcDate) return null;
+            let ms = utcDate.getTime();
+            let malaysiaMs = ms + (8 * 60 * 60 * 1000);
+            return new Date(malaysiaMs);
+        }
+
+        function getStatusFromTime(mytDate) {
+            if (!mytDate) return 'absent';
+            let hours = mytDate.getHours();
+            let minutes = mytDate.getMinutes();
+            let totalMinutes = hours * 60 + minutes;
+            if (totalMinutes < 7*60+45) return 'present';
+            if (totalMinutes <= 8*60+15) return 'late';
+            return 'invalid';
+        }
+
+        async function loadData() {
+            const studentsSnap = await db.collection('students').get();
+            allStudents = [];
+            studentsSnap.forEach(doc => allStudents.push({ id: doc.id, ...doc.data() }));
+
+            const attendanceSnap = await db.collection('attendance').get();
+            allAttendance = [];
+            attendanceSnap.forEach(doc => {
+                let data = doc.data();
+                let utc = data.scanned_at ? data.scanned_at.toDate() : null;
+                let myt = toMalaysiaTime(utc);
+                let status = getStatusFromTime(myt);
+                if (status === 'present' || status === 'late') {
+                    allAttendance.push({ student_id: data.student_id, status: status, time: myt });
+                }
+            });
+
+            // Build map
+            attendanceMap.clear();
+            allAttendance.forEach(a => attendanceMap.set(a.student_id, { status: a.status, time: a.time }));
+
+            updateClassFilter();
+            renderClasses();
+        }
+
+        function updateClassFilter() {
+            const classes = [...new Set(allStudents.map(s => s.class).filter(c => c))].sort();
+            const filterSelect = document.getElementById('classFilter');
+            if (filterSelect.options.length === 1) {
+                classes.forEach(c => {
+                    let opt = document.createElement('option');
+                    opt.value = c;
+                    opt.textContent = c;
+                    filterSelect.appendChild(opt);
+                });
+            }
+        }
+
+        function renderClasses() {
+            const classFilter = document.getElementById('classFilter').value;
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const byClass = {};
+            allStudents.forEach(s => { let cls = s.class || "No Class"; if (!byClass[cls]) byClass[cls] = []; byClass[cls].push(s); });
+
+            let classes = Object.keys(byClass).sort();
+            if (classFilter !== 'all') classes = classes.filter(c => c === classFilter);
+            let html = '';
+            for (let cls of classes) {
+                let students = byClass[cls];
+                if (search) students = students.filter(s => s.student_name.toLowerCase().includes(search));
+                if (!students.length) continue;
+                let presentCount = 0, lateCount = 0;
+                let studentsHtml = '';
+                students.forEach(s => {
+                    let att = attendanceMap.get(s.student_id);
+                    let status = att ? att.status : 'absent';
+                    if (status === 'present') presentCount++;
+                    else if (status === 'late') lateCount++;
+                    let statusClass = status === 'present' ? 'present' : (status === 'late' ? 'late' : 'absent');
+                    let statusText = status === 'present' ? 'Present' : (status === 'late' ? 'Late' : 'Absent');
+                    let icon = status === 'present' ? 'fa-check-circle' : (status === 'late' ? 'fa-clock' : 'fa-times-circle');
+                    studentsHtml += `
+                        <div class="student-row">
+                            <span>${s.student_name}</span>
+                            <span class="status-badge ${statusClass}">
+                                <i class="fas ${icon}"></i> ${statusText}
+                            </span>
+                        </div>
+                    `;
+                });
+                let total = students.length;
+                let presentLate = presentCount + lateCount;
+                html += `
+                    <div class="card">
+                        <div class="card-header"><h3>📚 ${cls}</h3><p>${lecturerNames[cls] || "Staff"}</p></div>
+                        <div class="students-list">${studentsHtml}</div>
+                        <div class="card-footer">
+                            <strong>${presentLate}</strong> / ${total} hadir 
+                            (${presentCount} tepat, ${lateCount} lewat)
+                        </div>
+                    </div>
+                `;
+            }
+            document.getElementById('lecturerGrid').innerHTML = html || '<div class="no-data">No data</div>';
+        }
+
+        document.getElementById('classFilter').addEventListener('change', renderClasses);
+        document.getElementById('searchInput').addEventListener('input', renderClasses);
+        loadData();
+        setInterval(loadData, 30000);
+// Redirect if not logged in
+if (!sessionStorage.getItem('loggedIn')) {
+    window.location.href = 'login.html';
+}
+
+const userRole = sessionStorage.getItem('role');
+const isAdmin = (userRole === 'admin');
+
+// Sembunyikan atau tunjukkan butang "Home" (ke index) hanya untuk admin
+document.addEventListener('DOMContentLoaded', () => {
+    const homeBtn = document.getElementById('homeBtn');
+    if (homeBtn) {
+        if (!isAdmin) homeBtn.style.display = 'none';
+    }
+});
+    </script>
+</body>
+</html>

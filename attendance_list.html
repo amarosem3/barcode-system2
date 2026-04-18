@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ROLLCALL - Attendance Log</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0a0f1f; font-family: 'Inter', sans-serif; color: white; padding: 1rem; }
+        .header { background: linear-gradient(135deg, #00f2fe, #4facfe); border-radius: 28px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .header h1 { font-size: 1.8rem; display: flex; align-items: center; gap: 0.5rem; }
+        .nav-buttons { display: flex; gap: 0.8rem; }
+        .nav-btn { background: rgba(255,255,255,0.15); border: none; padding: 0.5rem 1rem; border-radius: 40px; color: white; cursor: pointer; text-decoration: none; font-size: 0.9rem; }
+        .nav-btn:hover { background: rgba(255,255,255,0.3); }
+        .controls { display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 1.5rem; gap: 1rem; background: rgba(20,27,43,0.6); padding: 0.8rem 1.2rem; border-radius: 40px; }
+        .date-filter { display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; }
+        .date-filter input { background: #1e2740; border: 1px solid #2a3442; padding: 0.5rem 1rem; border-radius: 30px; color: white; }
+        .refresh-btn { background: #00f2fe; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; font-weight: 600; color: #0a0f1f; cursor: pointer; }
+        .attendance-table { background: rgba(20,27,43,0.7); border-radius: 24px; overflow-x: auto; border: 1px solid #2a3442; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th { text-align: left; padding: 1rem; background: #1a2335; color: #a0a8c0; border-bottom: 2px solid #00f2fe; }
+        td { padding: 0.9rem 1rem; border-bottom: 1px solid #2a3442; }
+        tr:hover { background: rgba(0,242,254,0.05); }
+        .badge-present { background: rgba(0,230,118,0.2); color: #00e676; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.7rem; }
+        .badge-late { background: rgba(255,193,7,0.2); color: #ffc107; }
+        .time-col { font-family: monospace; }
+        .no-data { text-align: center; padding: 3rem; color: #a0a8c0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-list-ul"></i> Attendance Log</h1>
+        <div class="nav-buttons" id="navButtons"></div>
+    </div>
+
+    <div class="controls">
+        <div class="date-filter">
+            <input type="date" id="startDate"> to <input type="date" id="endDate">
+            <button class="refresh-btn" onclick="loadAttendance()">Filter</button>
+            <button class="refresh-btn" onclick="resetDates()">Reset</button>
+        </div>
+        <div>Total records: <span id="totalRecords">0</span></div>
+    </div>
+
+    <div class="attendance-table">
+        <table>
+            <thead><tr><th>#</th><th>Student Name</th><th>Student ID</th><th>IC Number</th><th>Class</th><th>Status</th><th>Scan Time</th></tr></thead>
+            <tbody id="attendanceBody"><tr><td colspan="7" class="no-data">Loading...</td></tr></tbody>
+        </table>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAVnzKkl-GtHziHbw6SAdfftVnFkM5xm7E",
+            authDomain: "barcode-2591e.firebaseapp.com",
+            projectId: "barcode-2591e",
+            storageBucket: "barcode-2591e.firebasestorage.app",
+            messagingSenderId: "206115727840",
+            appId: "1:206115727840:web:79c3b16d866782397ba385"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        if (!sessionStorage.getItem('loggedIn')) window.location.href = 'login.html';
+        const role = sessionStorage.getItem('role');
+
+        // Build navigation based on role
+        const navDiv = document.getElementById('navButtons');
+        if (role === 'admin') {
+            navDiv.innerHTML = `
+                <a href="admin_dashboard.html" class="nav-btn"><i class="fas fa-tachometer-alt"></i> Admin</a>
+                <a href="lecturer_dashboard.html" class="nav-btn"><i class="fas fa-chalkboard-user"></i> Lecturer View</a>
+                <button class="nav-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            `;
+        } else {
+            navDiv.innerHTML = `
+                <a href="lecturer_dashboard.html" class="nav-btn"><i class="fas fa-chalkboard-user"></i> Dashboard</a>
+                <button class="nav-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            `;
+        }
+        document.getElementById('logoutBtn')?.addEventListener('click', () => {
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        });
+
+        let studentMap = new Map();
+
+        async function loadStudentMap() {
+            const snap = await db.collection('students').get();
+            studentMap.clear();
+            snap.forEach(doc => {
+                const data = doc.data();
+                studentMap.set(data.student_id, { name: data.student_name, ic: data.ic_number, class: data.class || 'N/A' });
+            });
+        }
+
+        async function loadAttendance() {
+            const tbody = document.getElementById('attendanceBody');
+            tbody.innerHTML = '<tr><td colspan="7" class="no-data">Loading...</td></tr>';
+            let snapshot = await db.collection('attendance').orderBy('scanned_at', 'desc').get();
+            let records = [];
+            snapshot.forEach(doc => {
+                let data = doc.data();
+                let ts = data.scanned_at ? data.scanned_at.toDate() : null;
+                records.push({ ...data, scanned_at: ts });
+            });
+            let start = document.getElementById('startDate').value;
+            let end = document.getElementById('endDate').value;
+            if (start) { let s = new Date(start); s.setHours(0,0,0,0); records = records.filter(r => r.scanned_at && r.scanned_at >= s); }
+            if (end) { let e = new Date(end); e.setHours(23,59,59,999); records = records.filter(r => r.scanned_at && r.scanned_at <= e); }
+            records.sort((a,b) => (b.scanned_at||0) - (a.scanned_at||0));
+            document.getElementById('totalRecords').innerText = records.length;
+            if (!records.length) { tbody.innerHTML = '<tr><td colspan="7" class="no-data">No records</td></tr>'; return; }
+            let html = '';
+            records.forEach((rec, idx) => {
+                let stu = studentMap.get(rec.student_id) || {};
+                let className = stu.class || 'N/A';
+                let timeStr = rec.scanned_at ? rec.scanned_at.toLocaleString() : 'Unknown';
+                let statusBadge = rec.status === 'present' ? 'badge-present' : 'badge-late';
+                let statusText = rec.status === 'present' ? 'Present' : 'Late';
+                html += `<tr>
+                    <td>${idx+1}</td>
+                    <td>${stu.name || rec.student_name || '?'}</td>
+                    <td>${rec.student_id || '-'}</td>
+                    <td>${stu.ic || rec.ic_number || '-'}</td>
+                    <td>${className}</td>
+                    <td><span class="${statusBadge}"><i class="fas ${rec.status === 'present' ? 'fa-check-circle' : 'fa-clock'}"></i> ${statusText}</span></td>
+                    <td class="time-col">${timeStr}</td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function resetDates() {
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            loadAttendance();
+        }
+
+        loadStudentMap().then(loadAttendance);
+        setInterval(() => { loadStudentMap().then(loadAttendance); }, 30000);
+    </script>
+</body>
+</html>

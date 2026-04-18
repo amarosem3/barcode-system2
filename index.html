@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ROLLCALL - Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0f1f;
+            font-family: 'Inter', sans-serif;
+            color: white;
+            padding: 1rem;
+        }
+        .header {
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            border-radius: 28px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .header h1 { font-size: 1.8rem; display: flex; align-items: center; gap: 0.5rem; }
+        .nav-buttons { display: flex; gap: 0.8rem; }
+        .nav-btn {
+            background: rgba(255,255,255,0.15);
+            padding: 0.5rem 1rem;
+            border-radius: 40px;
+            text-decoration: none;
+            color: white;
+            font-weight: 500;
+        }
+        .nav-btn:hover { background: rgba(255,255,255,0.3); }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: rgba(20,27,43,0.8);
+            border-radius: 24px;
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid #2a3442;
+        }
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #00f2fe;
+        }
+        .card {
+            background: rgba(20,27,43,0.8);
+            border-radius: 24px;
+            border: 1px solid #2a3442;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #1a2335, #0f172a);
+            padding: 1rem;
+            border-bottom: 2px solid #00f2fe;
+            font-weight: 600;
+        }
+        .card-body { padding: 1rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-control {
+            width: 100%;
+            background: #1e2740;
+            border: 1px solid #2a3442;
+            padding: 0.7rem;
+            border-radius: 30px;
+            color: white;
+        }
+        .btn {
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 600;
+            color: #0a0f1f;
+            cursor: pointer;
+        }
+        .btn-danger {
+            background: rgba(255,23,68,0.2);
+            color: #ff8a8a;
+            border: 1px solid #ff1744;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid #2a3442;
+        }
+        th { color: #a0a8c0; font-weight: 500; }
+        tr:hover { background: rgba(0,242,254,0.05); }
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #ff1744;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        @media (max-width: 700px) {
+            th, td { padding: 0.5rem; font-size: 0.8rem; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-qrcode"></i> ROLLCALL Admin</h1>
+        <div class="nav-buttons">
+            <a href="attendance_list.html" class="nav-btn"><i class="fas fa-list"></i> Attendance Log</a>
+            <a href="lecturer.html" class="nav-btn"><i class="fas fa-chalkboard-user"></i> Lecturer View</a>
+            <button class="nav-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card"><i class="fas fa-users"></i> Total Students: <div class="stat-number" id="totalStudents">0</div></div>
+        <div class="stat-card"><i class="fas fa-check-circle" style="color:#00e676;"></i> Present Today: <div class="stat-number" id="presentCount">0</div></div>
+        <div class="stat-card"><i class="fas fa-times-circle" style="color:#ff1744;"></i> Absent Today: <div class="stat-number" id="absentCount">0</div></div>
+        <div class="stat-card"><i class="fas fa-chart-line"></i> Attendance Rate: <div class="stat-number" id="attendanceRate">0%</div></div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><i class="fas fa-user-graduate"></i> Student Management</div>
+        <div class="card-body">
+            <form id="studentForm" class="row g-2" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <input type="text" id="ic_number" class="form-control" placeholder="IC Number" style="flex:1;" required>
+                <input type="text" id="student_id" class="form-control" placeholder="Student ID" style="flex:1;" required>
+                <input type="text" id="student_name" class="form-control" placeholder="Student Name" style="flex:2;" required>
+                <input type="text" id="class_name" class="form-control" placeholder="Class (e.g., DFK5A)" style="flex:1;">
+                <button type="submit" class="btn">Add Student</button>
+            </form>
+            <div style="overflow-x: auto; margin-top: 1rem;">
+                <table>
+                    <thead><tr><th>IC Number</th><th>Student ID</th><th>Name</th><th>Class</th><th>Action</th></tr></thead>
+                    <tbody id="studentTable"><tr><td colspan="5" style="text-align:center;">Loading...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAVnzKkl-GtHziHbw6SAdfftVnFkM5xm7E",
+            authDomain: "barcode-2591e.firebaseapp.com",
+            projectId: "barcode-2591e",
+            storageBucket: "barcode-2591e.firebasestorage.app",
+            messagingSenderId: "206115727840",
+            appId: "1:206115727840:web:79c3b16d866782397ba385"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Auth check & role check
+        if (!sessionStorage.getItem('loggedIn')) {
+            window.location.href = 'login.html';
+        }
+        const role = sessionStorage.getItem('role');
+        if (role !== 'admin') {
+            // If not admin, redirect to lecturer view
+            window.location.href = 'lecturer.html';
+        }
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            auth.signOut().then(() => {
+                sessionStorage.clear();
+                window.location.href = 'login.html';
+            });
+        });
+
+        // Load stats and students
+        async function loadStats() {
+            const studentsSnap = await db.collection('students').get();
+            const total = studentsSnap.size;
+            const today = new Date().toISOString().split('T')[0];
+            const attendanceSnap = await db.collection('attendance').where('scan_date', '==', today).get();
+            const present = attendanceSnap.size;
+            const absent = total - present;
+            const rate = total ? Math.round((present / total) * 100) : 0;
+            document.getElementById('totalStudents').innerText = total;
+            document.getElementById('presentCount').innerText = present;
+            document.getElementById('absentCount').innerText = absent;
+            document.getElementById('attendanceRate').innerText = rate + '%';
+        }
+
+        async function loadStudents() {
+            const snapshot = await db.collection('students').get();
+            const tbody = document.getElementById('studentTable');
+            if (snapshot.empty) {
+                tbody.innerHTML = '<tr><td colspan="5">No students yet</td></tr>';
+                return;
+            }
+            let html = '';
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                html += `<tr>
+                    <td>${escapeHtml(data.ic_number || '')}</td>
+                    <td>${escapeHtml(data.student_id || '')}</td>
+                    <td>${escapeHtml(data.student_name || '')}</td>
+                    <td>${escapeHtml(data.class || '')}</td>
+                    <td><button class="delete-btn" data-id="${doc.id}"><i class="fas fa-trash"></i> Delete</button></td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+            // Attach delete events
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const id = btn.getAttribute('data-id');
+                    if (confirm('Delete this student permanently?')) {
+                        await db.collection('students').doc(id).delete();
+                        loadStudents();
+                        loadStats();
+                    }
+                });
+            });
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // Add student
+        document.getElementById('studentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const ic = document.getElementById('ic_number').value.trim();
+            const sid = document.getElementById('student_id').value.trim();
+            const name = document.getElementById('student_name').value.trim();
+            const className = document.getElementById('class_name').value.trim();
+            if (!ic || !sid || !name) {
+                alert('Please fill IC, Student ID and Name');
+                return;
+            }
+            try {
+                await db.collection('students').add({
+                    ic_number: ic,
+                    student_id: sid,
+                    student_name: name,
+                    class: className || '',
+                    created_at: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                alert('Student added');
+                document.getElementById('studentForm').reset();
+                loadStudents();
+                loadStats();
+            } catch (err) {
+                console.error(err);
+                alert('Error: ' + err.message);
+            }
+        });
+
+        loadStats();
+        loadStudents();
+        setInterval(() => { loadStats(); loadStudents(); }, 30000);
+    </script>
+</body>
+</html>
