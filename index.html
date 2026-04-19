@@ -11,12 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            background: #0a0f1f;
-            font-family: 'Inter', sans-serif;
-            color: white;
-            padding: 1rem;
-        }
+        body { background: #0a0f1f; font-family: 'Inter', sans-serif; color: white; padding: 1rem; }
         .header {
             background: linear-gradient(135deg, #00f2fe, #4facfe);
             border-radius: 28px;
@@ -29,7 +24,7 @@
             gap: 0.5rem;
         }
         .header h1 { font-size: 1.8rem; display: flex; align-items: center; gap: 0.5rem; }
-        .nav-buttons { display: flex; gap: 0.8rem; }
+        .nav-buttons { display: flex; gap: 0.8rem; flex-wrap: wrap; }
         .nav-btn {
             background: rgba(255,255,255,0.15);
             padding: 0.5rem 1rem;
@@ -41,7 +36,7 @@
         .nav-btn:hover { background: rgba(255,255,255,0.3); }
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 1rem;
             margin-bottom: 2rem;
         }
@@ -53,7 +48,7 @@
             border: 1px solid #2a3442;
         }
         .stat-number {
-            font-size: 2.2rem;
+            font-size: 2rem;
             font-weight: 700;
             color: #00f2fe;
         }
@@ -94,17 +89,28 @@
             color: #ff8a8a;
             border: 1px solid #ff1744;
         }
-        table {
+        .class-group {
+            margin-bottom: 2rem;
+        }
+        .class-header {
+            background: rgba(0,242,254,0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }
+        .student-table {
             width: 100%;
             border-collapse: collapse;
+            margin-bottom: 1.5rem;
         }
-        th, td {
+        .student-table th, .student-table td {
             padding: 0.8rem;
             text-align: left;
             border-bottom: 1px solid #2a3442;
         }
-        th { color: #a0a8c0; font-weight: 500; }
-        tr:hover { background: rgba(0,242,254,0.05); }
+        .student-table th { color: #a0a8c0; font-weight: 500; }
+        .student-table tr:hover { background: rgba(0,242,254,0.05); }
         .delete-btn {
             background: none;
             border: none;
@@ -113,8 +119,7 @@
             font-size: 1rem;
         }
         @media (max-width: 700px) {
-            th, td { padding: 0.5rem; font-size: 0.8rem; }
-            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .student-table th, .student-table td { padding: 0.5rem; font-size: 0.8rem; }
         }
     </style>
 </head>
@@ -136,21 +141,22 @@
     </div>
 
     <div class="card">
-        <div class="card-header"><i class="fas fa-user-graduate"></i> Student Management</div>
+        <div class="card-header"><i class="fas fa-user-graduate"></i> Add New Student</div>
         <div class="card-body">
-            <form id="studentForm" class="row g-2" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <form id="studentForm" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                 <input type="text" id="ic_number" class="form-control" placeholder="IC Number" style="flex:1;" required>
                 <input type="text" id="student_id" class="form-control" placeholder="Student ID" style="flex:1;" required>
                 <input type="text" id="student_name" class="form-control" placeholder="Student Name" style="flex:2;" required>
                 <input type="text" id="class_name" class="form-control" placeholder="Class (e.g., DFK5A)" style="flex:1;">
                 <button type="submit" class="btn">Add Student</button>
             </form>
-            <div style="overflow-x: auto; margin-top: 1rem;">
-                <table>
-                    <thead><tr><th>IC Number</th><th>Student ID</th><th>Name</th><th>Class</th><th>Action</th></tr></thead>
-                    <tbody id="studentTable"><tr><td colspan="5" style="text-align:center;">Loading...</td></tr></tbody>
-                </table>
-            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><i class="fas fa-users-viewfinder"></i> Students by Class</div>
+        <div class="card-body" id="studentsByClassContainer">
+            Loading...
         </div>
     </div>
 
@@ -167,17 +173,11 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // Auth check & role check
-        if (!sessionStorage.getItem('loggedIn')) {
-            window.location.href = 'login.html';
-        }
+        // Auth & role check
+        if (!sessionStorage.getItem('loggedIn')) window.location.href = 'login.html';
         const role = sessionStorage.getItem('role');
-        if (role !== 'admin') {
-            // If not admin, redirect to lecturer view
-            window.location.href = 'lecturer.html';
-        }
+        if (role !== 'admin') window.location.href = 'lecturer.html';
 
-        // Logout
         document.getElementById('logoutBtn').addEventListener('click', () => {
             auth.signOut().then(() => {
                 sessionStorage.clear();
@@ -185,7 +185,7 @@
             });
         });
 
-        // Load stats and students
+        // Load stats
         async function loadStats() {
             const studentsSnap = await db.collection('students').get();
             const total = studentsSnap.size;
@@ -200,32 +200,64 @@
             document.getElementById('attendanceRate').innerText = rate + '%';
         }
 
-        async function loadStudents() {
+        // Load students grouped by class
+        async function loadStudentsGrouped() {
             const snapshot = await db.collection('students').get();
-            const tbody = document.getElementById('studentTable');
-            if (snapshot.empty) {
-                tbody.innerHTML = '<tr><td colspan="5">No students yet</td></tr>';
+            const students = [];
+            snapshot.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
+
+            // Group by class
+            const grouped = {};
+            students.forEach(s => {
+                const cls = s.class || 'No Class';
+                if (!grouped[cls]) grouped[cls] = [];
+                grouped[cls].push(s);
+            });
+
+            // Sort class names
+            const sortedClasses = Object.keys(grouped).sort();
+
+            const container = document.getElementById('studentsByClassContainer');
+            if (sortedClasses.length === 0) {
+                container.innerHTML = '<p>No students yet.</p>';
                 return;
             }
+
             let html = '';
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                html += `<tr>
-                    <td>${escapeHtml(data.ic_number || '')}</td>
-                    <td>${escapeHtml(data.student_id || '')}</td>
-                    <td>${escapeHtml(data.student_name || '')}</td>
-                    <td>${escapeHtml(data.class || '')}</td>
-                    <td><button class="delete-btn" data-id="${doc.id}"><i class="fas fa-trash"></i> Delete</button></td>
-                </tr>`;
-            });
-            tbody.innerHTML = html;
+            for (const cls of sortedClasses) {
+                const studentsInClass = grouped[cls];
+                html += `
+                    <div class="class-group">
+                        <div class="class-header">
+                            <i class="fas fa-chalkboard-user"></i> ${cls} (${studentsInClass.length} students)
+                        </div>
+                        <table class="student-table">
+                            <thead>
+                                <tr><th>IC Number</th><th>Student ID</th><th>Name</th><th>Action</th></tr>
+                            </thead>
+                            <tbody>
+                `;
+                studentsInClass.forEach(s => {
+                    html += `
+                        <tr>
+                            <td>${escapeHtml(s.ic_number || '')}</td>
+                            <td>${escapeHtml(s.student_id || '')}</td>
+                            <td>${escapeHtml(s.student_name || '')}</td>
+                            <td><button class="delete-btn" data-id="${s.id}"><i class="fas fa-trash"></i> Delete</button></td>
+                        </tr>
+                    `;
+                });
+                html += `</tbody></table></div>`;
+            }
+            container.innerHTML = html;
+
             // Attach delete events
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', async () => {
                     const id = btn.getAttribute('data-id');
                     if (confirm('Delete this student permanently?')) {
                         await db.collection('students').doc(id).delete();
-                        loadStudents();
+                        loadStudentsGrouped();
                         loadStats();
                     }
                 });
@@ -263,7 +295,7 @@
                 });
                 alert('Student added');
                 document.getElementById('studentForm').reset();
-                loadStudents();
+                loadStudentsGrouped();
                 loadStats();
             } catch (err) {
                 console.error(err);
@@ -272,8 +304,8 @@
         });
 
         loadStats();
-        loadStudents();
-        setInterval(() => { loadStats(); loadStudents(); }, 30000);
+        loadStudentsGrouped();
+        setInterval(() => { loadStats(); loadStudentsGrouped(); }, 30000);
     </script>
 </body>
 </html>
