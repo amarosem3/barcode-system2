@@ -9,17 +9,19 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
+        /* (sama seperti sebelumnya, ringkas) */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #0a0f1f; font-family: 'Inter', sans-serif; color: white; padding: 1rem; }
-        .header { background: linear-gradient(135deg, #00f2fe, #4facfe); border-radius: 28px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .header { background: linear-gradient(135deg, #00f2fe, #4facfe); border-radius: 28px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
         .header h1 { font-size: 1.8rem; display: flex; align-items: center; gap: 0.5rem; }
-        .nav-buttons { display: flex; gap: 0.8rem; }
-        .nav-btn { background: rgba(255,255,255,0.15); border: none; padding: 0.5rem 1rem; border-radius: 40px; color: white; cursor: pointer; text-decoration: none; font-size: 0.9rem; }
+        .nav-buttons { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+        .nav-btn { background: rgba(255,255,255,0.15); padding: 0.5rem 1rem; border-radius: 40px; text-decoration: none; color: white; font-weight: 500; cursor: pointer; display: inline-block; }
         .nav-btn:hover { background: rgba(255,255,255,0.3); }
         .controls { display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 1.5rem; gap: 1rem; background: rgba(20,27,43,0.6); padding: 0.8rem 1.2rem; border-radius: 40px; }
         .date-filter { display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; }
         .date-filter input { background: #1e2740; border: 1px solid #2a3442; padding: 0.5rem 1rem; border-radius: 30px; color: white; }
         .refresh-btn { background: #00f2fe; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; font-weight: 600; color: #0a0f1f; cursor: pointer; }
+        .reset-btn { background: #ff1744; color: white; }
         .attendance-table { background: rgba(20,27,43,0.7); border-radius: 24px; overflow-x: auto; border: 1px solid #2a3442; }
         table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
         th { text-align: left; padding: 1rem; background: #1a2335; color: #a0a8c0; border-bottom: 2px solid #00f2fe; }
@@ -27,21 +29,26 @@
         tr:hover { background: rgba(0,242,254,0.05); }
         .badge-present { background: rgba(0,230,118,0.2); color: #00e676; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.7rem; }
         .badge-late { background: rgba(255,193,7,0.2); color: #ffc107; }
-        .time-col { font-family: monospace; }
         .no-data { text-align: center; padding: 3rem; color: #a0a8c0; }
+        .toast-msg { position: fixed; bottom: 20px; right: 20px; background: #00e676; color: #0a0f1f; padding: 0.5rem 1rem; border-radius: 40px; display: none; z-index: 1000; }
+        @media (max-width: 700px) { th, td { padding: 0.6rem; font-size: 0.8rem; } }
     </style>
 </head>
 <body>
     <div class="header">
         <h1><i class="fas fa-list-ul"></i> Attendance Log</h1>
-        <div class="nav-buttons" id="navButtons"></div>
+        <div class="nav-buttons">
+            <a href="index.html" class="nav-btn"><i class="fas fa-home"></i> Back to Dashboard</a>
+            <button class="nav-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
     </div>
 
     <div class="controls">
         <div class="date-filter">
             <input type="date" id="startDate"> to <input type="date" id="endDate">
             <button class="refresh-btn" onclick="loadAttendance()">Filter</button>
-            <button class="refresh-btn" onclick="resetDates()">Reset</button>
+            <button class="refresh-btn" onclick="resetDates()">Reset Filter</button>
+            <button class="refresh-btn reset-btn" id="resetWeeklyBtn"><i class="fas fa-trash-alt"></i> Reset This Week (Sun-Thu)</button>
         </div>
         <div>Total records: <span id="totalRecords">0</span></div>
     </div>
@@ -49,9 +56,10 @@
     <div class="attendance-table">
         <table>
             <thead><tr><th>#</th><th>Student Name</th><th>Student ID</th><th>IC Number</th><th>Class</th><th>Status</th><th>Scan Time</th></tr></thead>
-            <tbody id="attendanceBody"><tr><td colspan="7" class="no-data">Loading...</td></tr></tbody>
+            <tbody id="attendanceBody"><tr><td colspan="7" class="no-data">Loading...<\/td><\/tr><\/tbody>
         </table>
-    </div>
+    <\/div>
+    <div id="toastMsg" class="toast-msg"><\/div>
 
     <script>
         const firebaseConfig = {
@@ -66,23 +74,8 @@
         const db = firebase.firestore();
 
         if (!sessionStorage.getItem('loggedIn')) window.location.href = 'login.html';
-        const role = sessionStorage.getItem('role');
 
-        // Build navigation based on role
-        const navDiv = document.getElementById('navButtons');
-        if (role === 'admin') {
-            navDiv.innerHTML = `
-                <a href="admin_dashboard.html" class="nav-btn"><i class="fas fa-tachometer-alt"></i> Admin</a>
-                <a href="lecturer_dashboard.html" class="nav-btn"><i class="fas fa-chalkboard-user"></i> Lecturer View</a>
-                <button class="nav-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
-            `;
-        } else {
-            navDiv.innerHTML = `
-                <a href="lecturer_dashboard.html" class="nav-btn"><i class="fas fa-chalkboard-user"></i> Dashboard</a>
-                <button class="nav-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
-            `;
-        }
-        document.getElementById('logoutBtn')?.addEventListener('click', () => {
+        document.getElementById('logoutBtn').addEventListener('click', () => {
             sessionStorage.clear();
             window.location.href = 'login.html';
         });
@@ -100,13 +93,13 @@
 
         async function loadAttendance() {
             const tbody = document.getElementById('attendanceBody');
-            tbody.innerHTML = '<tr><td colspan="7" class="no-data">Loading...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="no-data">Loading...<\/td><\/tr>';
             let snapshot = await db.collection('attendance').orderBy('scanned_at', 'desc').get();
             let records = [];
             snapshot.forEach(doc => {
                 let data = doc.data();
                 let ts = data.scanned_at ? data.scanned_at.toDate() : null;
-                records.push({ ...data, scanned_at: ts });
+                records.push({ id: doc.id, ...data, scanned_at: ts });
             });
             let start = document.getElementById('startDate').value;
             let end = document.getElementById('endDate').value;
@@ -114,7 +107,7 @@
             if (end) { let e = new Date(end); e.setHours(23,59,59,999); records = records.filter(r => r.scanned_at && r.scanned_at <= e); }
             records.sort((a,b) => (b.scanned_at||0) - (a.scanned_at||0));
             document.getElementById('totalRecords').innerText = records.length;
-            if (!records.length) { tbody.innerHTML = '<tr><td colspan="7" class="no-data">No records</td></tr>'; return; }
+            if (!records.length) { tbody.innerHTML = '<tr><td colspan="7" class="no-data">No records<\/td><\/tr>'; return; }
             let html = '';
             records.forEach((rec, idx) => {
                 let stu = studentMap.get(rec.student_id) || {};
@@ -123,13 +116,13 @@
                 let statusBadge = rec.status === 'present' ? 'badge-present' : 'badge-late';
                 let statusText = rec.status === 'present' ? 'Present' : 'Late';
                 html += `<tr>
-                    <td>${idx+1}</td>
-                    <td>${stu.name || rec.student_name || '?'}</td>
-                    <td>${rec.student_id || '-'}</td>
-                    <td>${stu.ic || rec.ic_number || '-'}</td>
-                    <td>${className}</td>
-                    <td><span class="${statusBadge}"><i class="fas ${rec.status === 'present' ? 'fa-check-circle' : 'fa-clock'}"></i> ${statusText}</span></td>
-                    <td class="time-col">${timeStr}</td>
+                    <td>${idx+1}<\/td>
+                    <td>${stu.name || rec.student_name || '?'}<\/td>
+                    <td>${rec.student_id || '-'}<\/td>
+                    <td>${stu.ic || rec.ic_number || '-'}<\/td>
+                    <td>${className}<\/td>
+                    <td><span class="${statusBadge}"><i class="fas ${rec.status === 'present' ? 'fa-check-circle' : 'fa-clock'}"><\/i> ${statusText}<\/span><\/td>
+                    <td class="time-col">${timeStr}<\/td>
                 </tr>`;
             });
             tbody.innerHTML = html;
@@ -141,7 +134,73 @@
             loadAttendance();
         }
 
-        loadStudentMap().then(loadAttendance);
+        // Helper: get start (Sunday) and end (Thursday) of current week
+        function getCurrentWeekRange() {
+            const now = new Date();
+            const day = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+            // Sunday of this week
+            const sunday = new Date(now);
+            sunday.setDate(now.getDate() - day);
+            sunday.setHours(0,0,0,0);
+            // Thursday of this week (Sunday + 4 days)
+            const thursday = new Date(sunday);
+            thursday.setDate(sunday.getDate() + 4);
+            thursday.setHours(23,59,59,999);
+            return { start: sunday, end: thursday };
+        }
+
+        // Reset weekly: delete all attendance records for current week (Sunday to Thursday)
+        async function resetWeeklyAttendance() {
+            if (!confirm('⚠️ WARNING: This will DELETE ALL attendance records for THIS WEEK (Sunday to Thursday). This action cannot be undone. Proceed?')) return;
+            const { start, end } = getCurrentWeekRange();
+            const snapshot = await db.collection('attendance')
+                .where('scanned_at', '>=', start)
+                .where('scanned_at', '<=', end)
+                .get();
+            if (snapshot.empty) {
+                showToast('No records found for this week.');
+                return;
+            }
+            const batch = db.batch();
+            snapshot.docs.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+            showToast(`✅ Deleted ${snapshot.size} attendance records for this week (Sun-Thu).`);
+            await loadAttendance();
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toastMsg');
+            toast.innerText = msg;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        // Auto reset on Thursday 23:59:59
+        function scheduleAutoReset() {
+            const now = new Date();
+            const nextThursday = new Date();
+            const day = now.getDay(); // 0 Sun, 1 Mon, ..., 4 Thu, 5 Fri, 6 Sat
+            let daysUntilThursday = (4 - day + 7) % 7;
+            if (daysUntilThursday === 0 && now.getHours() >= 23) {
+                // if today is Thursday and past 23:00, schedule for next week
+                daysUntilThursday = 7;
+            }
+            nextThursday.setDate(now.getDate() + daysUntilThursday);
+            nextThursday.setHours(23, 59, 0, 0);
+            const timeToReset = nextThursday - now;
+            setTimeout(() => {
+                resetWeeklyAttendance();
+                setInterval(() => resetWeeklyAttendance(), 7 * 24 * 60 * 60 * 1000);
+            }, timeToReset);
+            console.log(`Auto reset scheduled at ${nextThursday.toLocaleString()}`);
+        }
+
+        document.getElementById('resetWeeklyBtn').addEventListener('click', resetWeeklyAttendance);
+
+        loadStudentMap().then(() => {
+            loadAttendance();
+            scheduleAutoReset();
+        });
         setInterval(() => { loadStudentMap().then(loadAttendance); }, 30000);
     </script>
 </body>
