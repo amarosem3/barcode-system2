@@ -66,7 +66,6 @@
             font-weight: 600;
         }
         .card-body { padding: 1rem; }
-        .form-group { margin-bottom: 1rem; }
         .form-control {
             width: 100%;
             background: #1e2740;
@@ -83,15 +82,18 @@
             font-weight: 600;
             color: #0a0f1f;
             cursor: pointer;
+            margin: 0.2rem;
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
         }
         .btn-danger {
             background: rgba(255,23,68,0.2);
             color: #ff8a8a;
             border: 1px solid #ff1744;
         }
-        .class-group {
-            margin-bottom: 2rem;
-        }
+        .class-group { margin-bottom: 2rem; }
         .class-header {
             background: rgba(0,242,254,0.1);
             padding: 0.5rem 1rem;
@@ -118,6 +120,17 @@
             cursor: pointer;
             font-size: 1rem;
         }
+        .test-result {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 20px;
+            background: #1e2740;
+            font-weight: 500;
+        }
+        .test-result.present { background: rgba(0,230,118,0.2); color: #00e676; }
+        .test-result.late { background: rgba(255,193,7,0.2); color: #ffc107; }
+        .test-result.invalid { background: rgba(255,23,68,0.2); color: #ff8a8a; }
+        .time-picker { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; }
         @media (max-width: 700px) {
             .student-table th, .student-table td { padding: 0.5rem; font-size: 0.8rem; }
         }
@@ -138,6 +151,23 @@
         <div class="stat-card"><i class="fas fa-check-circle" style="color:#00e676;"></i> Present Today: <div class="stat-number" id="presentCount">0</div></div>
         <div class="stat-card"><i class="fas fa-times-circle" style="color:#ff1744;"></i> Absent Today: <div class="stat-number" id="absentCount">0</div></div>
         <div class="stat-card"><i class="fas fa-chart-line"></i> Attendance Rate: <div class="stat-number" id="attendanceRate">0%</div></div>
+    </div>
+
+    <!-- Test Scan Section -->
+    <div class="card">
+        <div class="card-header"><i class="fas fa-vial"></i> Test Scanner Logic (Simulate Scan)</div>
+        <div class="card-body">
+            <p>Pilih masa untuk menguji pengkelasan kehadiran (present / late / invalid). <strong>Nota:</strong> Scan selepas 8:15 AM akan diabaikan (tidak direkod).</p>
+            <div class="time-picker">
+                <button class="btn btn-secondary" id="testBefore745">🟢 Before 7:45 AM (Present)</button>
+                <button class="btn btn-secondary" id="testLate">🟠 7:45 – 8:15 AM (Late)</button>
+                <button class="btn btn-secondary" id="testAfter815">🔴 After 8:15 AM (Ignored)</button>
+                <span style="margin: 0 0.5rem;">or</span>
+                <input type="time" id="customTime" step="1" value="08:00">
+                <button class="btn btn-secondary" id="testCustomTime">Test Custom Time</button>
+            </div>
+            <div id="testResult" class="test-result"></div>
+        </div>
     </div>
 
     <div class="card">
@@ -185,6 +215,34 @@
             });
         });
 
+        // Time thresholds (Malaysia time)
+        const LIMIT_LATE = "07:45";
+        const LIMIT_INVALID = "08:15";
+
+        function getStatusFromTime(timeStr) {
+            if (timeStr < LIMIT_LATE) return { status: 'present', label: 'Present 🟢 (will be recorded)' };
+            if (timeStr < LIMIT_INVALID) return { status: 'late', label: 'Late 🟠 (will be recorded)' };
+            return { status: 'invalid', label: 'INVALID 🔴 (ignored, not recorded)' };
+        }
+
+        function showTestResult(timeStr) {
+            const result = getStatusFromTime(timeStr);
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.className = `test-result ${result.status === 'present' ? 'present' : (result.status === 'late' ? 'late' : 'invalid')}`;
+            resultDiv.innerHTML = `<i class="fas ${result.status === 'present' ? 'fa-check-circle' : (result.status === 'late' ? 'fa-clock' : 'fa-ban')}"></i> 
+                Scan at <strong>${timeStr}</strong> → ${result.label}`;
+        }
+
+        // Test buttons
+        document.getElementById('testBefore745').addEventListener('click', () => showTestResult("07:30"));
+        document.getElementById('testLate').addEventListener('click', () => showTestResult("08:00"));
+        document.getElementById('testAfter815').addEventListener('click', () => showTestResult("08:20"));
+        document.getElementById('testCustomTime').addEventListener('click', () => {
+            const custom = document.getElementById('customTime').value;
+            if (custom) showTestResult(custom);
+            else alert('Please select a time');
+        });
+
         // Load stats
         async function loadStats() {
             const studentsSnap = await db.collection('students').get();
@@ -206,7 +264,6 @@
             const students = [];
             snapshot.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
 
-            // Group by class
             const grouped = {};
             students.forEach(s => {
                 const cls = s.class || 'No Class';
@@ -214,9 +271,7 @@
                 grouped[cls].push(s);
             });
 
-            // Sort class names
             const sortedClasses = Object.keys(grouped).sort();
-
             const container = document.getElementById('studentsByClassContainer');
             if (sortedClasses.length === 0) {
                 container.innerHTML = '<p>No students yet.</p>';
@@ -232,9 +287,7 @@
                             <i class="fas fa-chalkboard-user"></i> ${cls} (${studentsInClass.length} students)
                         </div>
                         <table class="student-table">
-                            <thead>
-                                <tr><th>IC Number</th><th>Student ID</th><th>Name</th><th>Action</th></tr>
-                            </thead>
+                            <thead><tr><th>IC Number</th><th>Student ID</th><th>Name</th><th>Action</th></tr></thead>
                             <tbody>
                 `;
                 studentsInClass.forEach(s => {
@@ -251,7 +304,6 @@
             }
             container.innerHTML = html;
 
-            // Attach delete events
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', async () => {
                     const id = btn.getAttribute('data-id');
