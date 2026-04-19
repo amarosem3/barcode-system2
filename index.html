@@ -9,6 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #0a0f1f; font-family: 'Inter', sans-serif; color: white; padding: 1rem; }
@@ -88,11 +89,6 @@
             background: rgba(255,255,255,0.2);
             color: white;
         }
-        .btn-danger {
-            background: rgba(255,23,68,0.2);
-            color: #ff8a8a;
-            border: 1px solid #ff1744;
-        }
         .class-group { margin-bottom: 2rem; }
         .class-header {
             background: rgba(0,242,254,0.1);
@@ -153,9 +149,9 @@
         <div class="stat-card"><i class="fas fa-chart-line"></i> Attendance Rate: <div class="stat-number" id="attendanceRate">0%</div></div>
     </div>
 
-    <!-- Test Scan Section -->
+    <!-- Test Scanner Logic & Email -->
     <div class="card">
-        <div class="card-header"><i class="fas fa-vial"></i> Test Scanner Logic (Simulate Scan)</div>
+        <div class="card-header"><i class="fas fa-vial"></i> Test Scanner Logic & Email</div>
         <div class="card-body">
             <p>Pilih masa untuk menguji pengkelasan kehadiran (present / late / invalid). <strong>Nota:</strong> Scan selepas 8:15 AM akan diabaikan (tidak direkod).</p>
             <div class="time-picker">
@@ -165,13 +161,13 @@
                 <span style="margin: 0 0.5rem;">or</span>
                 <input type="time" id="customTime" step="1" value="08:00">
                 <button class="btn btn-secondary" id="testCustomTime">Test Custom Time</button>
-            <button class="btn btn-secondary" id="testEmailBtn">📧 Test Email Alert</button>
+                <button class="btn btn-secondary" id="testEmailBtn">📧 Test Email Alert</button>
             </div>
-        
             <div id="testResult" class="test-result"></div>
         </div>
     </div>
 
+    <!-- Add New Student -->
     <div class="card">
         <div class="card-header"><i class="fas fa-user-graduate"></i> Add New Student</div>
         <div class="card-body">
@@ -185,6 +181,7 @@
         </div>
     </div>
 
+    <!-- Students Grouped by Class -->
     <div class="card">
         <div class="card-header"><i class="fas fa-users-viewfinder"></i> Students by Class</div>
         <div class="card-body" id="studentsByClassContainer">
@@ -204,6 +201,11 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+
+        // EmailJS init
+        (function() {
+            emailjs.init("V6od5_xVWtn8C1ZWv"); // Gantikan dengan public key anda jika berbeza
+        })();
 
         // Auth & role check
         if (!sessionStorage.getItem('loggedIn')) window.location.href = 'login.html';
@@ -243,6 +245,34 @@
             const custom = document.getElementById('customTime').value;
             if (custom) showTestResult(custom);
             else alert('Please select a time');
+        });
+
+        // Test Email Button
+        document.getElementById('testEmailBtn').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.innerHTML = 'Sending test email...';
+            resultDiv.className = 'test-result';
+            try {
+                const templateParams = {
+                    to_email: 'admin@rollcall.com',
+                    subject: '🧪 Test Email from ROLLCALL',
+                    name: 'Admin',
+                    message: 'This is a test email from your ROLLCALL attendance system.',
+                    date: new Date().toLocaleDateString()
+                };
+                const response = await emailjs.send('service_4hnvptf', 'template_ugspg5y', templateParams);
+                if (response.status === 200) {
+                    resultDiv.innerHTML = '✅ Test email sent successfully! Check your inbox.';
+                    resultDiv.className = 'test-result present';
+                } else {
+                    resultDiv.innerHTML = '❌ Failed to send test email. Check EmailJS configuration.';
+                    resultDiv.className = 'test-result invalid';
+                }
+            } catch (error) {
+                console.error('Email error:', error);
+                resultDiv.innerHTML = '❌ Error sending email: ' + error.message;
+                resultDiv.className = 'test-result invalid';
+            }
         });
 
         // Load stats
@@ -302,7 +332,7 @@
                         </tr>
                     `;
                 });
-                html += `</tbody></table></div>`;
+                html += `</tbody><tr></div>`;
             }
             container.innerHTML = html;
 
