@@ -50,6 +50,38 @@
         .class-header { background: rgba(0,242,254,0.1); padding: 0.3rem 0.8rem; border-radius: 10px; display: inline-block; margin-bottom: 0.5rem; }
         @media (max-width: 768px) { .sidebar { width: 70px; } .sidebar-header h2, .nav-item span { display: none; } .main-content { margin-left: 70px; } .stats-grid { grid-template-columns: repeat(2, 1fr); } }
     </style>
+    <style id="theme-style">
+    /* Theme variables will be set by JavaScript */
+    body.light-theme {
+        --bg-primary: #f0f2f5;
+        --bg-secondary: #ffffff;
+        --bg-card: #ffffff;
+        --bg-sidebar: #ffffff;
+        --text-primary: #1a1a2e;
+        --text-secondary: #4a5568;
+        --border-color: #e2e8f0;
+        --accent-color: #0077b6;
+        --accent-gradient: linear-gradient(135deg, #00b4d8, #0077b6);
+        --hover-bg: #f0f2f5;
+    }
+    body.dark-theme {
+        --bg-primary: #0f1219;
+        --bg-secondary: #1a1f2e;
+        --bg-card: #1a1f2e;
+        --bg-sidebar: #0a0d14;
+        --text-primary: #e0e0e0;
+        --text-secondary: #a0a8c0;
+        --border-color: #1e2433;
+        --accent-color: #00f2fe;
+        --accent-gradient: linear-gradient(135deg, #00f2fe, #4facfe);
+        --hover-bg: #2a3442;
+    }
+    body {
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        transition: background 0.3s ease, color 0.3s ease;
+    }
+</style>
 </head>
 <body>
     <div class="app-container">
@@ -330,5 +362,32 @@
         loadStudentsGrouped();
         setInterval(() => { loadStats(); loadStudentsGrouped(true); }, 120000);
     </script>
+    // Theme initialization
+function initTheme() {
+    const savedTheme = localStorage.getItem('rollcall_theme');
+    const body = document.body;
+    
+    if (savedTheme === 'light') {
+        body.classList.add('light-theme');
+        body.classList.remove('dark-theme');
+    } else if (savedTheme === 'dark') {
+        body.classList.add('dark-theme');
+        body.classList.remove('light-theme');
+    } else if (savedTheme === 'system') {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (prefersDark) {
+            body.classList.add('dark-theme');
+            body.classList.remove('light-theme');
+        } else {
+            body.classList.add('light-theme');
+            body.classList.remove('dark-theme');
+        }
+    } else {
+        // Default to dark
+        body.classList.add('dark-theme');
+    }
+}
+
+initTheme();
 </body>
 </html>
