@@ -67,12 +67,7 @@
             border-left: 3px solid transparent;
         }
         
-        .nav-item:hover {
-            background: #1a1f2e;
-            color: #00f2fe;
-        }
-        
-        .nav-item.active {
+        .nav-item:hover, .nav-item.active {
             background: #1a1f2e;
             border-left-color: #00f2fe;
             color: #00f2fe;
@@ -190,7 +185,6 @@
             color: #e0e0e0;
             font-size: 0.9rem;
             outline: none;
-            transition: all 0.3s ease;
         }
         
         .form-control:focus {
@@ -216,22 +210,16 @@
             color: #0a0f1f;
         }
         
-        .btn-success {
-            background: linear-gradient(135deg, #00e676, #00c853);
-            border-color: transparent;
-            color: #0a0f1f;
-        }
-        
         .btn-warning {
             background: linear-gradient(135deg, #ffc107, #ff9800);
             border-color: transparent;
             color: #0a0f1f;
         }
         
-        .btn-danger {
-            background: #ff1744;
+        .btn-success {
+            background: linear-gradient(135deg, #00e676, #00c853);
             border-color: transparent;
-            color: white;
+            color: #0a0f1f;
         }
         
         .student-table {
@@ -239,19 +227,17 @@
             border-collapse: collapse;
         }
         
-        .student-table th {
-            text-align: left;
+        .student-table th, .student-table td {
             padding: 0.75rem;
-            background: #151b26;
-            color: #a0a8c0;
-            font-weight: 500;
+            text-align: left;
+            border-bottom: 1px solid #1e2433;
             font-size: 0.85rem;
         }
         
-        .student-table td {
-            padding: 0.75rem;
-            border-bottom: 1px solid #1e2433;
-            font-size: 0.85rem;
+        .student-table th {
+            background: #151b26;
+            color: #a0a8c0;
+            font-weight: 500;
         }
         
         .student-table tr:hover td {
@@ -276,7 +262,6 @@
             border-radius: 10px;
             margin-bottom: 1rem;
             display: inline-block;
-            font-size: 0.9rem;
             font-weight: 600;
         }
         
@@ -299,31 +284,15 @@
             gap: 0.5rem;
             align-items: center;
             flex-wrap: wrap;
-        }
-        
-        @media (max-width: 1024px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            margin-bottom: 1rem;
         }
         
         @media (max-width: 768px) {
-            .sidebar {
-                width: 70px;
-            }
-            .sidebar-header h2, .sidebar-header p, .nav-item span {
-                display: none;
-            }
-            .nav-item {
-                justify-content: center;
-                padding: 0.75rem;
-            }
-            .main-content {
-                margin-left: 70px;
-            }
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
+            .sidebar { width: 70px; }
+            .sidebar-header h2, .sidebar-header p, .nav-item span { display: none; }
+            .nav-item { justify-content: center; padding: 0.75rem; }
+            .main-content { margin-left: 70px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
@@ -335,18 +304,9 @@
                 <p>Admin Panel</p>
             </div>
             <div class="nav-menu">
-                <a href="#" class="nav-item active">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="attendance_list.html" class="nav-item">
-                    <i class="fas fa-list-ul"></i>
-                    <span>Attendance Log</span>
-                </a>
-                <a href="lecturer.html" class="nav-item">
-                    <i class="fas fa-chalkboard-user"></i>
-                    <span>Lecturer View</span>
-                </a>
+                <a href="#" class="nav-item active"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
+                <a href="attendance_list.html" class="nav-item"><i class="fas fa-list-ul"></i><span>Attendance Log</span></a>
+                <a href="lecturer.html" class="nav-item"><i class="fas fa-chalkboard-user"></i><span>Lecturer View</span></a>
             </div>
         </div>
         
@@ -356,44 +316,24 @@
                     <h1>Dashboard</h1>
                     <p>Welcome back, Admin</p>
                 </div>
-                <div class="user-info">
-                    <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
-                </div>
+                <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </div>
             
             <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-users"></i></div>
-                    <div class="stat-label">Total Students</div>
-                    <div class="stat-number" id="totalStudents">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-check-circle" style="color:#00e676;"></i></div>
-                    <div class="stat-label">Present Today</div>
-                    <div class="stat-number" id="presentCount">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-times-circle" style="color:#ff1744;"></i></div>
-                    <div class="stat-label">Absent Today</div>
-                    <div class="stat-number" id="absentCount">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
-                    <div class="stat-label">Attendance Rate</div>
-                    <div class="stat-number" id="attendanceRate">0%</div>
-                </div>
+                <div class="stat-card"><div class="stat-icon"><i class="fas fa-users"></i></div><div class="stat-label">Total Students</div><div class="stat-number" id="totalStudents">0</div></div>
+                <div class="stat-card"><div class="stat-icon"><i class="fas fa-check-circle" style="color:#00e676;"></i></div><div class="stat-label">Present Today</div><div class="stat-number" id="presentCount">0</div></div>
+                <div class="stat-card"><div class="stat-icon"><i class="fas fa-times-circle" style="color:#ff1744;"></i></div><div class="stat-label">Absent Today</div><div class="stat-number" id="absentCount">0</div></div>
+                <div class="stat-card"><div class="stat-icon"><i class="fas fa-chart-line"></i></div><div class="stat-label">Attendance Rate</div><div class="stat-number" id="attendanceRate">0%</div></div>
             </div>
             
             <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-vial"></i> Test Scanner Simulation (Records to Firebase)
-                </div>
+                <div class="card-header"><i class="fas fa-vial"></i> Test Scanner Simulation (NO Database Record)</div>
                 <div class="card-body">
-                    <p style="margin-bottom: 1rem; font-size: 0.85rem;">Klik button untuk simulasi scan dan rekod ke Firebase:</p>
+                    <p style="margin-bottom: 1rem; font-size: 0.85rem;">Klik button untuk SIMULASI sahaja - TIADA rekod disimpan ke database. Guna Raspberry Pi untuk rekod sebenar.</p>
                     <div class="time-picker">
-                        <button class="btn btn-primary" id="testBefore745">✅ Test Present (Before 7:45 AM)</button>
-                        <button class="btn btn-warning" id="testLate">⚠️ Test Late (7:45 - 8:15 AM)</button>
-                        <button class="btn" id="testAfter815">❌ Test Invalid (After 8:15 AM)</button>
+                        <button class="btn btn-primary" id="testBefore745">✅ Simulate Present (Before 7:45 AM)</button>
+                        <button class="btn btn-warning" id="testLate">⚠️ Simulate Late (7:45 - 8:15 AM)</button>
+                        <button class="btn" id="testAfter815">❌ Simulate Invalid (After 8:15 AM)</button>
                         <button class="btn btn-success" id="sendReportBtn"><i class="fas fa-envelope"></i> Send Daily Report</button>
                     </div>
                     <div id="testResult" class="test-result"></div>
@@ -401,9 +341,7 @@
             </div>
             
             <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-user-graduate"></i> Add New Student
-                </div>
+                <div class="card-header"><i class="fas fa-user-graduate"></i> Add New Student</div>
                 <div class="card-body">
                     <form id="studentForm" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                         <input type="text" id="ic_number" placeholder="IC Number" class="form-control" style="flex:1;" required>
@@ -417,9 +355,7 @@
             </div>
             
             <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-file-excel"></i> Import Students from Excel
-                </div>
+                <div class="card-header"><i class="fas fa-file-excel"></i> Import Students from Excel</div>
                 <div class="card-body">
                     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                         <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" class="form-control" style="width: auto;">
@@ -431,12 +367,8 @@
             </div>
             
             <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-users-viewfinder"></i> Students by Class
-                </div>
-                <div class="card-body" id="studentsByClassContainer">
-                    Loading...
-                </div>
+                <div class="card-header"><i class="fas fa-users-viewfinder"></i> Students by Class</div>
+                <div class="card-body" id="studentsByClassContainer">Loading...</div>
             </div>
         </div>
     </div>
@@ -459,221 +391,109 @@
         if (!sessionStorage.getItem('loggedIn')) window.location.href = 'login.html';
         if (sessionStorage.getItem('role') !== 'admin') window.location.href = 'lecturer.html';
         
-        document.getElementById('logoutBtn').addEventListener('click', () => {
+        document.getElementById('logoutBtn').onclick = () => {
             auth.signOut().then(() => { sessionStorage.clear(); window.location.href = 'login.html'; });
-        });
+        };
         
-        // ============ TEST SIMULATION BUTTONS ============
-        async function testScanAndRecord(testTime, expectedStatus, statusLabel) {
+        // ============ SIMULATION ONLY - NO DATABASE WRITE ============
+        function showSimulation(testTime, expectedStatus, statusLabel) {
             const div = document.getElementById('testResult');
-            
             if (expectedStatus === 'invalid') {
-                div.innerHTML = `<i class="fas fa-ban"></i> ⏰ Simulation at ${testTime} → INVALID (would be ignored, not recorded)`;
+                div.innerHTML = `<i class="fas fa-ban"></i> 🧪 SIMULATION at ${testTime} → INVALID (would be ignored, not recorded)`;
                 div.className = 'test-result invalid';
-                return;
-            }
-            
-            div.innerHTML = `<i class="fas fa-spinner fa-pulse"></i> Recording test scan as ${statusLabel} at ${testTime}...`;
-            div.className = 'test-result';
-            
-            try {
-                // Get first student for testing
-                const studentsSnap = await db.collection('students').limit(1).get();
-                if (studentsSnap.empty) {
-                    div.innerHTML = '❌ No students found. Please add a student first.';
-                    div.className = 'test-result error';
-                    return;
-                }
-                
-                const testStudent = studentsSnap.docs[0];
-                const studentData = testStudent.data();
-                
-                // Create timestamp for the test time (today at specified time)
-                const now = new Date();
-                const malaysiaTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
-                const todayStr = malaysiaTime.toISOString().split('T')[0];
-                const testDateTime = new Date(`${todayStr}T${testTime}:00+08:00`);
-                
-                await db.collection('attendance').add({
-                    ic_number: studentData.ic_number,
-                    student_id: studentData.student_id,
-                    student_name: studentData.student_name,
-                    class: studentData.class || '',
-                    status: expectedStatus,
-                    scanned_at: firebase.firestore.Timestamp.fromDate(testDateTime),
-                    test_record: true,
-                    test_time: testTime
-                });
-                
-                div.innerHTML = `<i class="fas fa-check-circle"></i> ✅ SUCCESS! Recorded as ${statusLabel.toUpperCase()} at ${testTime} for: ${studentData.student_name}`;
+            } else {
+                div.innerHTML = `<i class="fas fa-check-circle"></i> 🧪 SIMULATION at ${testTime} → ${statusLabel.toUpperCase()} (NO record saved - use Raspberry Pi for actual scan)`;
                 div.className = 'test-result present';
-                
-                // Refresh stats and students list
-                loadStats();
-                loadStudentsGrouped(true);
-                
-            } catch (error) {
-                console.error('Test error:', error);
-                div.innerHTML = `❌ Error: ${error.message}`;
-                div.className = 'test-result error';
             }
+            setTimeout(() => {
+                div.innerHTML = `<i class="fas fa-info-circle"></i> Click button again to test, or use Raspberry Pi scanner for actual recording.`;
+            }, 4000);
         }
         
-        document.getElementById('testBefore745').onclick = () => testScanAndRecord("07:30", "present", "Present");
-        document.getElementById('testLate').onclick = () => testScanAndRecord("08:00", "late", "Late");
-        document.getElementById('testAfter815').onclick = () => testScanAndRecord("08:20", "invalid", "Invalid");
+        document.getElementById('testBefore745').onclick = () => showSimulation("07:30", "present", "Present");
+        document.getElementById('testLate').onclick = () => showSimulation("08:00", "late", "Late");
+        document.getElementById('testAfter815').onclick = () => showSimulation("08:20", "invalid", "Invalid");
         
-        // ============ SEND DAILY REPORT ============
+        // Send Daily Report
         document.getElementById('sendReportBtn').onclick = async () => {
             const div = document.getElementById('testResult');
             div.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Generating daily report...';
-            div.className = 'test-result';
-            
             try {
                 const now = new Date();
                 const malaysiaTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
                 const todayStr = malaysiaTime.toISOString().split('T')[0];
                 const startOfDay = new Date(todayStr + 'T00:00:00+08:00');
                 const endOfDay = new Date(todayStr + 'T23:59:59+08:00');
-                
                 const studentsSnap = await db.collection('students').get();
                 const totalStudents = studentsSnap.size;
-                
-                const attendanceSnap = await db.collection('attendance')
-                    .where('scanned_at', '>=', startOfDay)
-                    .where('scanned_at', '<=', endOfDay)
-                    .get();
-                
+                const attendanceSnap = await db.collection('attendance').where('scanned_at', '>=', startOfDay).where('scanned_at', '<=', endOfDay).get();
                 const presentCount = attendanceSnap.size;
-                const absentCount = totalStudents - presentCount;
                 const attendanceRate = totalStudents ? Math.round((presentCount / totalStudents) * 100) : 0;
-                
-                const templateParams = {
+                await emailjs.send('service_4hnvptf', 'template_ugspg5y', {
                     to_email: 'amarosem3@gmail.com',
-                    subject: `📊 Daily Attendance Report - ${new Date().toLocaleDateString()}`,
-                    message: `Total: ${totalStudents}, Present: ${presentCount}, Absent: ${absentCount}, Rate: ${attendanceRate}%`,
+                    subject: `📊 Daily Report - ${new Date().toLocaleDateString()}`,
+                    message: `Total: ${totalStudents}, Present: ${presentCount}, Rate: ${attendanceRate}%`,
                     date: new Date().toLocaleDateString()
-                };
-                
-                const response = await emailjs.send('service_4hnvptf', 'template_ugspg5y', templateParams);
-                
-                if (response.status === 200) {
-                    div.innerHTML = `<i class="fas fa-check-circle"></i> ✅ Daily report sent! Present: ${presentCount}/${totalStudents} (${attendanceRate}%)`;
-                    div.className = 'test-result success';
-                } else {
-                    div.innerHTML = '❌ Failed to send report.';
-                    div.className = 'test-result error';
-                }
-            } catch (error) {
-                div.innerHTML = '❌ Error: ' + error.message;
+                });
+                div.innerHTML = `<i class="fas fa-check-circle"></i> ✅ Daily report sent! Present: ${presentCount}/${totalStudents} (${attendanceRate}%)`;
+                div.className = 'test-result success';
+            } catch(e) {
+                div.innerHTML = '❌ Error: ' + e.message;
                 div.className = 'test-result error';
             }
         };
         
-        // ============ LOAD STATS ============
+        // Load Stats
         async function loadStats() {
             try {
                 const studentsSnap = await db.collection('students').get();
                 const total = studentsSnap.size;
-                
                 const now = new Date();
                 const malaysiaTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
                 const todayStr = malaysiaTime.toISOString().split('T')[0];
                 const startOfDay = new Date(todayStr + 'T00:00:00+08:00');
                 const endOfDay = new Date(todayStr + 'T23:59:59+08:00');
-                
-                const attendanceSnap = await db.collection('attendance')
-                    .where('scanned_at', '>=', startOfDay)
-                    .where('scanned_at', '<=', endOfDay)
-                    .get();
-                
+                const attendanceSnap = await db.collection('attendance').where('scanned_at', '>=', startOfDay).where('scanned_at', '<=', endOfDay).get();
                 const present = attendanceSnap.size;
-                const absent = total - present;
                 const rate = total ? Math.round((present / total) * 100) : 0;
-                
                 document.getElementById('totalStudents').innerText = total;
                 document.getElementById('presentCount').innerText = present;
-                document.getElementById('absentCount').innerText = absent;
+                document.getElementById('absentCount').innerText = total - present;
                 document.getElementById('attendanceRate').innerText = rate + '%';
-            } catch (error) {
-                console.error('Error loading stats:', error);
-            }
+            } catch(e) { console.error(e); }
         }
         
-        // ============ LOAD STUDENTS GROUPED ============
-        let cachedStudents = null;
-        let lastFetchTime = 0;
-        const CACHE_DURATION = 60000;
-        
-        async function loadStudentsGrouped(forceRefresh = false) {
+        let cachedStudents = null, lastFetch = 0;
+        async function loadStudentsGrouped(force = false) {
             const container = document.getElementById('studentsByClassContainer');
-            const now = Date.now();
-            
-            if (!forceRefresh && cachedStudents && (now - lastFetchTime) < CACHE_DURATION) {
-                renderStudentGroups(cachedStudents);
-                return;
-            }
-            
-            container.innerHTML = '<div style="text-align:center; padding:2rem;"><i class="fas fa-spinner fa-pulse"></i> Loading students...</div>';
-            
-            try {
-                const snapshot = await db.collection('students').get();
-                const students = [];
-                snapshot.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
-                cachedStudents = students;
-                lastFetchTime = now;
-                renderStudentGroups(students);
-            } catch (error) {
-                container.innerHTML = '<div style="text-align:center; padding:2rem; color:#ff8a8a;">❌ Error loading students</div>';
-            }
+            if (!force && cachedStudents && (Date.now() - lastFetch) < 60000) { renderStudents(cachedStudents); return; }
+            container.innerHTML = '<div style="text-align:center; padding:2rem;"><i class="fas fa-spinner fa-pulse"></i> Loading...</div>';
+            const snap = await db.collection('students').get();
+            const students = []; snap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
+            cachedStudents = students; lastFetch = Date.now();
+            renderStudents(students);
         }
         
-        function renderStudentGroups(students) {
+        function renderStudents(students) {
             const container = document.getElementById('studentsByClassContainer');
-            if (!students.length) {
-                container.innerHTML = '<p style="text-align:center; padding:2rem;">No students yet. Add some students above.</p>';
-                return;
-            }
-            
+            if (!students.length) { container.innerHTML = '<p>No students yet.</p>'; return; }
             const grouped = {};
-            students.forEach(s => {
-                let cls = (s.class || 'No Class').trim().toUpperCase();
-                if (!grouped[cls]) grouped[cls] = [];
-                grouped[cls].push(s);
-            });
-            
-            const sortedClasses = Object.keys(grouped).sort();
+            students.forEach(s => { let c = (s.class || 'No Class').trim().toUpperCase(); if (!grouped[c]) grouped[c] = []; grouped[c].push(s); });
             let html = '';
-            
-            for (const cls of sortedClasses) {
-                const studentsInClass = grouped[cls];
-                html += `
-                    <div class="class-group">
-                        <div class="class-header">
-                            <i class="fas fa-chalkboard-user"></i> ${cls} (${studentsInClass.length} students)
-                        </div>
-                        <table class="student-table">
-                            <thead><tr><th>IC Number</th><th>Student ID</th><th>Name</th><th>Semester</th><th>Action</th></tr></thead>
-                            <tbody>
-                `;
-                studentsInClass.forEach(s => {
-                    html += `
-                        <tr>
-                            <td>${escapeHtml(String(s.ic_number || '-'))}</td>
-                            <td>${escapeHtml(s.student_id || '-')}</td>
-                            <td><strong>${escapeHtml(s.student_name || '?')}</strong></td>
-                            <td>Semester ${s.semester || '?'}</td>
-                            <td><button class="delete-btn" data-id="${s.id}"><i class="fas fa-trash"></i></button></td>
-                        </tr>
-                    `;
+            for (let cls of Object.keys(grouped).sort()) {
+                html += `<div class="class-group"><div class="class-header"><i class="fas fa-chalkboard-user"></i> ${cls} (${grouped[cls].length} students)</div>
+                <table class="student-table"><thead><tr><th>IC Number</th><th>Student ID</th><th>Name</th><th>Semester</th><th>Action</th></tr></thead><tbody>`;
+                grouped[cls].forEach(s => {
+                    html += `<tr><td>${escapeHtml(String(s.ic_number||'-'))}</td><td>${escapeHtml(s.student_id||'-')}</td>
+                    <td><strong>${escapeHtml(s.student_name||'?')}</strong></td><td>Semester ${s.semester||'?'}</td>
+                    <td><button class="delete-btn" data-id="${s.id}"><i class="fas fa-trash"></i></button></td></tr>`;
                 });
                 html += `</tbody></table></div>`;
             }
             container.innerHTML = html;
-            
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.onclick = async () => {
-                    if (confirm('Delete this student permanently?')) {
+                    if (confirm('Delete student?')) {
                         await db.collection('students').doc(btn.dataset.id).delete();
                         cachedStudents = null;
                         loadStudentsGrouped(true);
@@ -683,25 +503,17 @@
             });
         }
         
-        function escapeHtml(str) { 
-            if (!str) return ''; 
-            return String(str).replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); 
-        }
+        function escapeHtml(str) { return String(str||'').replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
         
-        // ============ ADD STUDENT ============
         document.getElementById('studentForm').onsubmit = async (e) => {
             e.preventDefault();
             const ic = document.getElementById('ic_number').value.trim();
             const sid = document.getElementById('student_id').value.trim();
             const name = document.getElementById('student_name').value.trim();
-            const className = document.getElementById('class_name').value.trim();
-            const semester = parseInt(document.getElementById('semester').value) || 1;
+            const cls = document.getElementById('class_name').value.trim();
+            const sem = parseInt(document.getElementById('semester').value) || 1;
             if (!ic || !sid || !name) { alert('Please fill required fields'); return; }
-            await db.collection('students').add({
-                ic_number: ic, student_id: sid, student_name: name,
-                class: className || '', semester: semester,
-                created_at: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            await db.collection('students').add({ ic_number: ic, student_id: sid, student_name: name, class: cls || '', semester: sem });
             alert('Student added');
             document.getElementById('studentForm').reset();
             cachedStudents = null;
@@ -709,38 +521,28 @@
             loadStats();
         };
         
-        // ============ IMPORT EXCEL ============
         document.getElementById('importExcelBtn').onclick = async () => {
-            const fileInput = document.getElementById('excelFile');
-            if (!fileInput.files.length) { alert('Please select an Excel file'); return; }
-            const file = fileInput.files[0];
+            const file = document.getElementById('excelFile').files[0];
+            if (!file) { alert('Select Excel file'); return; }
+            if (!confirm('Import will REPLACE all students. Continue?')) return;
             const reader = new FileReader();
             reader.onload = async (e) => {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                const rows = XLSX.utils.sheet_to_json(sheet);
-                if (!rows.length) { alert('No data found'); return; }
-                if (!confirm(`Import ${rows.length} students? This will REPLACE all existing students.`)) return;
-                
+                const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+                const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
                 const existing = await db.collection('students').get();
                 const batch = db.batch();
                 existing.forEach(doc => batch.delete(doc.ref));
                 await batch.commit();
-                
-                let count = 0;
                 for (const row of rows) {
                     await db.collection('students').add({
                         student_name: row.student_name || row.name || '',
                         student_id: row.student_id || row.id || '',
                         ic_number: String(row.ic_number || row.ic || ''),
                         class: row.class || '',
-                        semester: parseInt(row.semester) || 1,
-                        created_at: firebase.firestore.FieldValue.serverTimestamp()
+                        semester: parseInt(row.semester) || 1
                     });
-                    count++;
                 }
-                alert(`✅ Imported ${count} students`);
+                alert(`✅ Imported ${rows.length} students`);
                 cachedStudents = null;
                 loadStudentsGrouped(true);
                 loadStats();
@@ -749,12 +551,7 @@
         };
         
         document.getElementById('downloadTemplateBtn').onclick = () => {
-            const template = [
-                ['student_name', 'student_id', 'ic_number', 'class', 'semester'],
-                ['Ahmad Bin Abdullah', 'S001', '010101010101', 'DFK5A', 1],
-                ['Siti Binti Ahmad', 'S002', '020202020202', 'DFK5A', 1]
-            ];
-            const ws = XLSX.utils.aoa_to_sheet(template);
+            const ws = XLSX.utils.aoa_to_sheet([['student_name','student_id','ic_number','class','semester'],['Ahmad Bin Abdullah','S001','010101010101','DFK5A',1]]);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Students');
             XLSX.writeFile(wb, 'student_template.xlsx');
