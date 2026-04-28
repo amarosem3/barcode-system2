@@ -413,7 +413,12 @@
                 dayRecords.forEach(rec => {
                     let stu = studentMap.get(rec.student_id) || {};
                     let className = stu.class || 'N/A';
-                    let displayTime = rec.scanned_at ? new Date(rec.scanned_at.getTime() + (8 * 60 * 60 * 1000)).toLocaleTimeString() : 'Unknown';
+                    let displayTime = rec.scanned_at ? rec.scanned_at.toLocaleTimeString('en-MY', { 
+    timeZone: 'Asia/Kuala_Lumpur',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+}) : 'Unknown';
                     let statusBadge = rec.status === 'present' ? 'badge-present' : 'badge-late';
                     let statusText = rec.status === 'present' ? 'Present' : 'Late';
                     let statusIcon = rec.status === 'present' ? 'fa-check-circle' : 'fa-clock';
