@@ -19,13 +19,11 @@
             color: #e0e0e0;
         }
         
-        /* Sidebar Layout */
         .app-container {
             display: flex;
             min-height: 100vh;
         }
         
-        /* Sidebar */
         .sidebar {
             width: 280px;
             background: #0a0d14;
@@ -80,19 +78,12 @@
             color: #00f2fe;
         }
         
-        .nav-item i {
-            width: 20px;
-            font-size: 1.1rem;
-        }
-        
-        /* Main Content */
         .main-content {
             flex: 1;
             margin-left: 280px;
             padding: 1.5rem;
         }
         
-        /* Header */
         .top-bar {
             display: flex;
             justify-content: space-between;
@@ -113,12 +104,6 @@
             margin-top: 0.25rem;
         }
         
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
         .logout-btn {
             background: #1e2433;
             padding: 0.5rem 1rem;
@@ -134,7 +119,6 @@
             color: white;
         }
         
-        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -172,7 +156,6 @@
             color: #00f2fe;
         }
         
-        /* Cards */
         .card {
             background: #1a1f2e;
             border-radius: 16px;
@@ -197,11 +180,6 @@
         
         .card-body {
             padding: 1.25rem;
-        }
-        
-        /* Forms */
-        .form-group {
-            margin-bottom: 1rem;
         }
         
         .form-control {
@@ -238,13 +216,14 @@
             color: #0a0f1f;
         }
         
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 242, 254, 0.3);
-        }
-        
         .btn-success {
             background: linear-gradient(135deg, #00e676, #00c853);
+            border-color: transparent;
+            color: #0a0f1f;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #ff9800);
             border-color: transparent;
             color: #0a0f1f;
         }
@@ -255,7 +234,6 @@
             color: white;
         }
         
-        /* Student Table */
         .student-table {
             width: 100%;
             border-collapse: collapse;
@@ -302,7 +280,6 @@
             font-weight: 600;
         }
         
-        /* Test Result */
         .test-result {
             margin-top: 1rem;
             padding: 1rem;
@@ -324,7 +301,6 @@
             flex-wrap: wrap;
         }
         
-        /* Responsive */
         @media (max-width: 1024px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -353,7 +329,6 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
                 <h2><i class="fas fa-qrcode"></i> ROLLCALL</h2>
@@ -375,7 +350,6 @@
             </div>
         </div>
         
-        <!-- Main Content -->
         <div class="main-content">
             <div class="top-bar">
                 <div class="page-title">
@@ -387,7 +361,6 @@
                 </div>
             </div>
             
-            <!-- Stats -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fas fa-users"></i></div>
@@ -411,27 +384,22 @@
                 </div>
             </div>
             
-            <!-- Test Scanner & Daily Report -->
             <div class="card">
                 <div class="card-header">
-                    <i class="fas fa-vial"></i> Test Scanner Logic & Daily Report
+                    <i class="fas fa-vial"></i> Test Scanner Simulation (Records to Firebase)
                 </div>
                 <div class="card-body">
-                    <p style="margin-bottom: 1rem; font-size: 0.85rem;">Pilih masa untuk menguji pengkelasan kehadiran (present / late / invalid).</p>
+                    <p style="margin-bottom: 1rem; font-size: 0.85rem;">Klik button untuk simulasi scan dan rekod ke Firebase:</p>
                     <div class="time-picker">
-                        <button class="btn" id="testBefore745">🟢 Before 7:45 AM</button>
-                        <button class="btn" id="testLate">🟠 7:45 – 8:15 AM</button>
-                        <button class="btn" id="testAfter815">🔴 After 8:15 AM</button>
-                        <span>or</span>
-                        <input type="time" id="customTime" step="1" value="08:00" class="form-control" style="width: auto;">
-                        <button class="btn" id="testCustomTime">Test</button>
+                        <button class="btn btn-primary" id="testBefore745">✅ Test Present (Before 7:45 AM)</button>
+                        <button class="btn btn-warning" id="testLate">⚠️ Test Late (7:45 - 8:15 AM)</button>
+                        <button class="btn" id="testAfter815">❌ Test Invalid (After 8:15 AM)</button>
                         <button class="btn btn-success" id="sendReportBtn"><i class="fas fa-envelope"></i> Send Daily Report</button>
                     </div>
                     <div id="testResult" class="test-result"></div>
                 </div>
             </div>
             
-            <!-- Add Student -->
             <div class="card">
                 <div class="card-header">
                     <i class="fas fa-user-graduate"></i> Add New Student
@@ -448,7 +416,6 @@
                 </div>
             </div>
             
-            <!-- Import Excel -->
             <div class="card">
                 <div class="card-header">
                     <i class="fas fa-file-excel"></i> Import Students from Excel
@@ -463,7 +430,6 @@
                 </div>
             </div>
             
-            <!-- Students List -->
             <div class="card">
                 <div class="card-header">
                     <i class="fas fa-users-viewfinder"></i> Students by Class
@@ -497,28 +463,67 @@
             auth.signOut().then(() => { sessionStorage.clear(); window.location.href = 'login.html'; });
         });
         
-        // Test Scanner Logic
-        const LIMIT_LATE = "07:45", LIMIT_INVALID = "08:15";
-        function getStatusFromTime(timeStr) {
-            if (timeStr < LIMIT_LATE) return { status: 'present', label: 'Present 🟢 (will be recorded)' };
-            if (timeStr < LIMIT_INVALID) return { status: 'late', label: 'Late 🟠 (will be recorded)' };
-            return { status: 'invalid', label: 'INVALID 🔴 (ignored)' };
-        }
-        function showTestResult(timeStr) {
-            const r = getStatusFromTime(timeStr);
+        // ============ TEST SIMULATION BUTTONS ============
+        async function testScanAndRecord(testTime, expectedStatus, statusLabel) {
             const div = document.getElementById('testResult');
-            div.className = `test-result ${r.status}`;
-            div.innerHTML = `<i class="fas ${r.status === 'present' ? 'fa-check-circle' : (r.status === 'late' ? 'fa-clock' : 'fa-ban')}"></i> Scan at <strong>${timeStr}</strong> → ${r.label}`;
+            
+            if (expectedStatus === 'invalid') {
+                div.innerHTML = `<i class="fas fa-ban"></i> ⏰ Simulation at ${testTime} → INVALID (would be ignored, not recorded)`;
+                div.className = 'test-result invalid';
+                return;
+            }
+            
+            div.innerHTML = `<i class="fas fa-spinner fa-pulse"></i> Recording test scan as ${statusLabel} at ${testTime}...`;
+            div.className = 'test-result';
+            
+            try {
+                // Get first student for testing
+                const studentsSnap = await db.collection('students').limit(1).get();
+                if (studentsSnap.empty) {
+                    div.innerHTML = '❌ No students found. Please add a student first.';
+                    div.className = 'test-result error';
+                    return;
+                }
+                
+                const testStudent = studentsSnap.docs[0];
+                const studentData = testStudent.data();
+                
+                // Create timestamp for the test time (today at specified time)
+                const now = new Date();
+                const malaysiaTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
+                const todayStr = malaysiaTime.toISOString().split('T')[0];
+                const testDateTime = new Date(`${todayStr}T${testTime}:00+08:00`);
+                
+                await db.collection('attendance').add({
+                    ic_number: studentData.ic_number,
+                    student_id: studentData.student_id,
+                    student_name: studentData.student_name,
+                    class: studentData.class || '',
+                    status: expectedStatus,
+                    scanned_at: firebase.firestore.Timestamp.fromDate(testDateTime),
+                    test_record: true,
+                    test_time: testTime
+                });
+                
+                div.innerHTML = `<i class="fas fa-check-circle"></i> ✅ SUCCESS! Recorded as ${statusLabel.toUpperCase()} at ${testTime} for: ${studentData.student_name}`;
+                div.className = 'test-result present';
+                
+                // Refresh stats and students list
+                loadStats();
+                loadStudentsGrouped(true);
+                
+            } catch (error) {
+                console.error('Test error:', error);
+                div.innerHTML = `❌ Error: ${error.message}`;
+                div.className = 'test-result error';
+            }
         }
-        document.getElementById('testBefore745').onclick = () => showTestResult("07:30");
-        document.getElementById('testLate').onclick = () => showTestResult("08:00");
-        document.getElementById('testAfter815').onclick = () => showTestResult("08:20");
-        document.getElementById('testCustomTime').onclick = () => {
-            const custom = document.getElementById('customTime').value;
-            if (custom) showTestResult(custom);
-        };
         
-        // Send Daily Report
+        document.getElementById('testBefore745').onclick = () => testScanAndRecord("07:30", "present", "Present");
+        document.getElementById('testLate').onclick = () => testScanAndRecord("08:00", "late", "Late");
+        document.getElementById('testAfter815').onclick = () => testScanAndRecord("08:20", "invalid", "Invalid");
+        
+        // ============ SEND DAILY REPORT ============
         document.getElementById('sendReportBtn').onclick = async () => {
             const div = document.getElementById('testResult');
             div.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Generating daily report...';
@@ -543,18 +548,6 @@
                 const absentCount = totalStudents - presentCount;
                 const attendanceRate = totalStudents ? Math.round((presentCount / totalStudents) * 100) : 0;
                 
-                let presentList = '';
-                if (presentCount > 0) {
-                    presentList = '<ul>';
-                    for (const doc of attendanceSnap.docs) {
-                        const data = doc.data();
-                        presentList += `<li>${data.student_name || data.student_id} - ${data.status === 'present' ? 'Present' : 'Late'}</li>`;
-                    }
-                    presentList += '</ul>';
-                } else {
-                    presentList = '<p>No students recorded today.</p>';
-                }
-                
                 const templateParams = {
                     to_email: 'amarosem3@gmail.com',
                     subject: `📊 Daily Attendance Report - ${new Date().toLocaleDateString()}`,
@@ -577,7 +570,7 @@
             }
         };
         
-        // Load Stats
+        // ============ LOAD STATS ============
         async function loadStats() {
             try {
                 const studentsSnap = await db.collection('students').get();
@@ -607,7 +600,7 @@
             }
         }
         
-        // Load Students
+        // ============ LOAD STUDENTS GROUPED ============
         let cachedStudents = null;
         let lastFetchTime = 0;
         const CACHE_DURATION = 60000;
@@ -695,7 +688,7 @@
             return String(str).replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); 
         }
         
-        // Add Student
+        // ============ ADD STUDENT ============
         document.getElementById('studentForm').onsubmit = async (e) => {
             e.preventDefault();
             const ic = document.getElementById('ic_number').value.trim();
@@ -716,7 +709,7 @@
             loadStats();
         };
         
-        // Import Excel
+        // ============ IMPORT EXCEL ============
         document.getElementById('importExcelBtn').onclick = async () => {
             const fileInput = document.getElementById('excelFile');
             if (!fileInput.files.length) { alert('Please select an Excel file'); return; }
