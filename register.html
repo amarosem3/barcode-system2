@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>ROLLCALL - Register Lecturer</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -10,10 +10,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
-        /* Sama seperti sebelumnya, ringkas */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: radial-gradient(circle at 20% 30%, #0a0f1f, #03060c);
+            background: linear-gradient(135deg, #0f1219 0%, #1a1f2e 100%);
             font-family: 'Inter', sans-serif;
             display: flex;
             align-items: center;
@@ -21,91 +20,150 @@
             min-height: 100vh;
             padding: 1rem;
         }
-        .register-card {
-            background: rgba(20,27,43,0.8);
-            backdrop-filter: blur(16px);
-            border-radius: 32px;
-            border: 1px solid rgba(0,242,254,0.3);
-            padding: 2rem;
+        .register-container {
             width: 100%;
-            max-width: 450px;
+            max-width: 480px;
         }
-        .register-card h2 { text-align: center; color: #00f2fe; margin-bottom: 1.5rem; }
-        .input-group { margin-bottom: 1rem; }
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .logo h1 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .register-card {
+            background: rgba(30, 36, 51, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 2rem;
+            border: 1px solid rgba(0, 242, 254, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        .register-card h2 {
+            color: #00f2fe;
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+        }
+        .input-group {
+            margin-bottom: 1rem;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #a0a8c0;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
         .input-wrapper {
             display: flex;
             align-items: center;
-            background: rgba(30,39,64,0.7);
-            border: 1px solid #2a3442;
-            border-radius: 40px;
-            padding: 0.5rem 1rem;
+            background: #1a1f2e;
+            border: 1px solid #2d3748;
+            border-radius: 12px;
+            padding: 0.8rem 1rem;
+            transition: all 0.3s ease;
         }
-        .input-wrapper i { color: #00f2fe; margin-right: 0.8rem; }
+        .input-wrapper:focus-within {
+            border-color: #00f2fe;
+            box-shadow: 0 0 0 2px rgba(0, 242, 254, 0.2);
+        }
+        .input-wrapper i {
+            color: #00f2fe;
+            margin-right: 0.8rem;
+        }
         .input-wrapper input {
             background: transparent;
             border: none;
             width: 100%;
             color: white;
-            font-size: 1rem;
+            font-size: 0.95rem;
             outline: none;
         }
-        button {
+        .register-btn {
             width: 100%;
             background: linear-gradient(135deg, #00f2fe, #4facfe);
             border: none;
-            padding: 0.8rem;
-            border-radius: 40px;
+            padding: 0.9rem;
+            border-radius: 12px;
             font-weight: 700;
+            font-size: 1rem;
             color: #0a0f1f;
             cursor: pointer;
             margin-top: 1rem;
         }
-        .error, .success { text-align: center; margin-top: 1rem; font-size: 0.85rem; display: none; }
-        .error { color: #ff8a8a; }
-        .success { color: #00e676; }
-        .login-link { text-align: center; margin-top: 1.5rem; font-size: 0.85rem; }
-        .login-link a { color: #00f2fe; text-decoration: none; }
+        .error, .success {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            display: none;
+        }
+        .error { color: #f56565; }
+        .success { color: #48bb78; }
+        .login-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #2d3748;
+            font-size: 0.85rem;
+            color: #8a94a8;
+        }
+        .login-link a {
+            color: #00f2fe;
+            text-decoration: none;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
-    <div class="register-card">
-        <h2><i class="fas fa-user-plus"></i> Lecturer Registration</h2>
-        <form id="registerForm">
-            <div class="input-group">
-                <div class="input-wrapper">
-                    <i class="fas fa-user"></i>
-                    <input type="text" id="name" placeholder="Full Name" required>
+    <div class="register-container">
+        <div class="logo">
+            <h1><i class="fas fa-user-plus"></i> ROLLCALL</h1>
+        </div>
+        <div class="register-card">
+            <h2>Lecturer Registration</h2>
+            <form id="registerForm">
+                <div class="input-group">
+                    <label>Full Name</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="name" placeholder="Enter your full name" required>
+                    </div>
                 </div>
-            </div>
-            <div class="input-group">
-                <div class="input-wrapper">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="email" placeholder="Email" required>
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="email" placeholder="Enter your email" required>
+                    </div>
                 </div>
-            </div>
-            <div class="input-group">
-                <div class="input-wrapper">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="password" placeholder="Password (min 6 chars)" required>
+                <div class="input-group">
+                    <label>Password</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" placeholder="Min 6 characters" required>
+                    </div>
                 </div>
+                <button type="submit" class="register-btn">Register</button>
+                <div class="error" id="errorMsg"></div>
+                <div class="success" id="successMsg"></div>
+            </form>
+            <div class="login-link">
+                Already have account? <a href="login.html">Login</a>
             </div>
-            <button type="submit">Register</button>
-            <div class="error" id="errorMsg"></div>
-            <div class="success" id="successMsg"></div>
-        </form>
-        <div class="login-link">
-            Already have account? <a href="login.html">Login</a>
         </div>
     </div>
-
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyAVnzKkl-GtHziHbw6SAdfftVnFkM5xm7E",
-            authDomain: "barcode-2591e.firebaseapp.com",
-            projectId: "barcode-2591e",
-            storageBucket: "barcode-2591e.firebasestorage.app",
-            messagingSenderId: "206115727840",
-            appId: "1:206115727840:web:79c3b16d866782397ba385"
+            apiKey: "AIzaSyBgqq_FVLDrlPew5mvUI84gJtNcNfGQchI",
+            authDomain: "rollcall-new-db.firebaseapp.com",
+            projectId: "rollcall-new-db",
+            storageBucket: "rollcall-new-db.firebasestorage.app",
+            messagingSenderId: "803179166995",
+            appId: "1:803179166995:web:d55ebffb4bfa934bb2eee6"
         };
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
@@ -120,17 +178,14 @@
             const successDiv = document.getElementById('successMsg');
             errorDiv.style.display = 'none';
             successDiv.style.display = 'none';
-
             if (password.length < 6) {
                 errorDiv.innerText = 'Password must be at least 6 characters.';
                 errorDiv.style.display = 'block';
                 return;
             }
-
             try {
                 const userCred = await auth.createUserWithEmailAndPassword(email, password);
                 const user = userCred.user;
-                // Save user data in Firestore with role 'lecturer'
                 await db.collection('users').doc(user.uid).set({
                     uid: user.uid,
                     name: name,
@@ -140,9 +195,7 @@
                 });
                 successDiv.innerText = 'Registration successful! Redirecting to login...';
                 successDiv.style.display = 'block';
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 2000);
+                setTimeout(() => window.location.href = 'login.html', 2000);
             } catch (err) {
                 errorDiv.innerText = err.message;
                 errorDiv.style.display = 'block';
