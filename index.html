@@ -5,7 +5,236 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>ROLLCALL - Admin Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href=<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROLLCALL - Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0f1219; font-family: 'Inter', sans-serif; color: #e0e0e0; }
+        .app-container { display: flex; min-height: 100vh; }
+        .sidebar { width: 280px; background: #0a0d14; border-right: 1px solid #1e2433; position: fixed; height: 100vh; }
+        .sidebar-header { padding: 1.5rem; border-bottom: 1px solid #1e2433; }
+        .sidebar-header h2 { background: linear-gradient(135deg, #00f2fe, #4facfe); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .nav-menu { padding: 1rem 0; }
+        .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.5rem; color: #a0a8c0; text-decoration: none; border-left: 3px solid transparent; transition: all 0.3s; }
+        .nav-item:hover, .nav-item.active { background: #1a1f2e; border-left-color: #00f2fe; color: #00f2fe; }
+        .main-content { flex: 1; margin-left: 280px; padding: 1.5rem; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #1e2433; }
+        .logout-btn { background: #1e2433; padding: 0.5rem 1rem; border-radius: 8px; border: none; color: #e0e0e0; cursor: pointer; }
+        .logout-btn:hover { background: #ff1744; color: white; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: #1a1f2e; border-radius: 16px; padding: 1.25rem; text-align: center; border: 1px solid #1e2433; }
+        .stat-number { font-size: 2rem; font-weight: 700; color: #00f2fe; }
+        .card { background: #1a1f2e; border-radius: 16px; border: 1px solid #1e2433; margin-bottom: 1.5rem; overflow: hidden; }
+        .card-header { background: #151b26; padding: 1rem 1.25rem; border-bottom: 1px solid #1e2433; font-weight: 600; }
+        .card-body { padding: 1.25rem; }
+        .form-control { background: #2a3442; border: 1px solid #3a4557; padding: 0.7rem 1rem; border-radius: 10px; color: #e0e0e0; }
+        .btn { background: #2a3442; border: 1px solid #3a4557; padding: 0.6rem 1.2rem; border-radius: 10px; cursor: pointer; color: #e0e0e0; }
+        .btn-primary { background: linear-gradient(135deg, #00f2fe, #4facfe); color: #0a0f1f; border: none; }
+        .btn-success { background: linear-gradient(135deg, #00e676, #00c853); color: white; border: none; }
+        .student-table { width: 100%; border-collapse: collapse; }
+        .student-table th, .student-table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #1e2433; }
+        .delete-btn { background: none; border: none; color: #ff1744; cursor: pointer; }
+        .class-group { margin-bottom: 1.5rem; }
+        .class-header { background: rgba(0,242,254,0.1); padding: 0.3rem 0.8rem; border-radius: 10px; display: inline-block; margin-bottom: 0.5rem; }
+        .time-picker { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; }
+        .test-result { margin-top: 1rem; padding: 1rem; border-radius: 12px; font-weight: 500; }
+        .test-result.present { background: rgba(0,230,118,0.2); color: #00e676; }
+        .test-result.late { background: rgba(255,193,7,0.2); color: #ffc107; }
+        .test-result.invalid { background: rgba(255,23,68,0.2); color: #ff8a8a; }
+        @media (max-width: 768px) { .sidebar { width: 70px; } .sidebar-header h2, .nav-item span { display: none; } .main-content { margin-left: 70px; } .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="sidebar">
+            <div class="sidebar-header"><h2><i class="fas fa-qrcode"></i> ROLLCALL</h2></div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-item active"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
+                <a href="attendance_list.html" class="nav-item"><i class="fas fa-list-ul"></i><span>Attendance Log</span></a>
+                <a href="lecturer.html" class="nav-item"><i class="fas fa-chalkboard-user"></i><span>Lecturer View</span></a>
+                <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="top-bar"><div><h1>Dashboard</h1><p>Admin Panel</p></div><button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-label">Total Students</div><div class="stat-number" id="totalStudents">0</div></div>
+                <div class="stat-card"><div class="stat-label">Present Today</div><div class="stat-number" id="presentCount">0</div></div>
+                <div class="stat-card"><div class="stat-label">Absent Today</div><div class="stat-number" id="absentCount">0</div></div>
+                <div class="stat-card"><div class="stat-label">Attendance Rate</div><div class="stat-number" id="attendanceRate">0%</div></div>
+            </div>
+            <div class="card">
+                <div class="card-header"><i class="fas fa-clock"></i> Demo Scan Simulation</div>
+                <div class="card-body">
+                    <div class="time-picker">
+                        <input type="time" id="demoTime" step="1" value="07:30" class="form-control" style="width: 150px;">
+                        <button class="btn btn-primary" id="demoPresentBtn">✅ Present (Before 7:45)</button>
+                        <button class="btn btn-primary" id="demoLateBtn">⚠️ Late (7:45-8:15)</button>
+                        <button class="btn" id="demoInvalidBtn">❌ Invalid (After 8:15)</button>
+                    </div>
+                    <div id="demoResult" class="test-result"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><i class="fas fa-user-graduate"></i> Add Student</div>
+                <div class="card-body">
+                    <form id="studentForm" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <input type="text" id="ic_number" placeholder="IC" class="form-control" style="flex:1;" required>
+                        <input type="text" id="student_id" placeholder="Student ID" class="form-control" style="flex:1;" required>
+                        <input type="text" id="student_name" placeholder="Name" class="form-control" style="flex:2;" required>
+                        <input type="text" id="class_name" placeholder="Class" class="form-control" style="flex:1;">
+                        <input type="number" id="semester" placeholder="Sem" class="form-control" style="flex:1;">
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </form>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><i class="fas fa-file-excel"></i> Import Excel</div>
+                <div class="card-body">
+                    <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" class="form-control" style="display:inline-block; width:auto;">
+                    <button class="btn btn-primary" id="importExcelBtn">Import</button>
+                    <button class="btn" id="downloadTemplateBtn">Template</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><i class="fas fa-users"></i> Students by Class</div>
+                <div class="card-body" id="studentsByClassContainer">Loading...</div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBgqq_FVLDrlPew5mvUI84gJtNcNfGQchI",
+            authDomain: "rollcall-new-db.firebaseapp.com",
+            projectId: "rollcall-new-db",
+            storageBucket: "rollcall-new-db.firebasestorage.app",
+            messagingSenderId: "803179166995",
+            appId: "1:803179166995:web:d55ebffb4bfa934bb2eee6"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        if (!sessionStorage.getItem('loggedIn')) window.location.href = 'login.html';
+        if (sessionStorage.getItem('role') !== 'admin') window.location.href = 'lecturer.html';
+        
+        document.getElementById('logoutBtn').onclick = () => { auth.signOut().then(() => { sessionStorage.clear(); window.location.href = 'login.html'; }); };
+        
+        async function recordDemo(status, timeStr) {
+            const div = document.getElementById('demoResult');
+            div.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Recording...';
+            const students = await db.collection('students').limit(1).get();
+            if (students.empty) { div.innerHTML = '❌ No students found'; div.className = 'test-result invalid'; return; }
+            const student = students.docs[0].data();
+            const today = new Date().toISOString().split('T')[0];
+            const dt = new Date(`${today}T${timeStr}:00+08:00`);
+            await db.collection('attendance').add({
+                ic_number: student.ic_number, student_id: student.student_id, student_name: student.student_name,
+                class: student.class || '', status: status, scanned_at: firebase.firestore.Timestamp.fromDate(dt), demo: true
+            });
+            div.innerHTML = `✅ Recorded as ${status.toUpperCase()} at ${timeStr} for ${student.student_name}`;
+            div.className = `test-result ${status}`;
+            loadStats();
+            setTimeout(() => { div.innerHTML = ''; }, 3000);
+        }
+        document.getElementById('demoPresentBtn').onclick = () => recordDemo('present', document.getElementById('demoTime').value);
+        document.getElementById('demoLateBtn').onclick = () => recordDemo('late', document.getElementById('demoTime').value);
+        document.getElementById('demoInvalidBtn').onclick = () => recordDemo('invalid', document.getElementById('demoTime').value);
+        
+        async function loadStats() {
+            const students = await db.collection('students').get();
+            const total = students.size;
+            const today = new Date(); today.setHours(today.getHours()+8);
+            const todayStr = today.toISOString().split('T')[0];
+            const start = new Date(todayStr+'T00:00:00+08:00');
+            const end = new Date(todayStr+'T23:59:59+08:00');
+            const att = await db.collection('attendance').where('scanned_at','>=',start).where('scanned_at','<=',end).get();
+            const present = att.size;
+            const rate = total ? Math.round(present/total*100) : 0;
+            document.getElementById('totalStudents').innerText = total;
+            document.getElementById('presentCount').innerText = present;
+            document.getElementById('absentCount').innerText = total - present;
+            document.getElementById('attendanceRate').innerText = rate+'%';
+        }
+        
+        let cached = null, last = 0;
+        async function loadStudents() {
+            const container = document.getElementById('studentsByClassContainer');
+            if (cached && Date.now()-last<60000) { render(cached); return; }
+            container.innerHTML = '<div style="text-align:center; padding:2rem;"><i class="fas fa-spinner fa-pulse"></i> Loading...</div>';
+            const snap = await db.collection('students').get();
+            const students = []; snap.forEach(d=>students.push({id:d.id,...d.data()}));
+            cached = students; last = Date.now();
+            render(students);
+        }
+        function render(students) {
+            if(!students.length){ document.getElementById('studentsByClassContainer').innerHTML='<p>No students</p>'; return; }
+            const grouped={};
+            students.forEach(s=>{ let c=(s.class||'No Class').toUpperCase(); if(!grouped[c]) grouped[c]=[]; grouped[c].push(s); });
+            let html='';
+            for(let cls of Object.keys(grouped).sort()){
+                html+=`<div class="class-group"><div class="class-header">📚 ${cls} (${grouped[cls].length})</div><table class="student-table"><thead><tr><th>IC</th><th>ID</th><th>Name</th><th>Sem</th><th></th></tr></thead><tbody>`;
+                grouped[cls].forEach(s=>{
+                    html+=`<tr><td>${s.ic_number||'-'}</td><td>${s.student_id||'-'}</td><td><strong>${s.student_name||'?'}</strong></td><td>${s.semester||'?'}</td><td><button class="delete-btn" data-id="${s.id}"><i class="fas fa-trash"></i></button></td></tr>`;
+                });
+                html+=`</tbody></table></div>`;
+            }
+            document.getElementById('studentsByClassContainer').innerHTML=html;
+            document.querySelectorAll('.delete-btn').forEach(btn=>{ btn.onclick=async()=>{ if(confirm('Delete?')){ await db.collection('students').doc(btn.dataset.id).delete(); cached=null; loadStudents(); loadStats(); } }; });
+        }
+        
+        document.getElementById('studentForm').onsubmit = async (e) => {
+            e.preventDefault();
+            await db.collection('students').add({
+                ic_number: document.getElementById('ic_number').value.trim(),
+                student_id: document.getElementById('student_id').value.trim(),
+                student_name: document.getElementById('student_name').value.trim(),
+                class: document.getElementById('class_name').value.trim(),
+                semester: parseInt(document.getElementById('semester').value)||1
+            });
+            alert('Student added'); e.target.reset(); cached=null; loadStudents(); loadStats();
+        };
+        
+        document.getElementById('importExcelBtn').onclick = async () => {
+            const file = document.getElementById('excelFile').files[0];
+            if(!file) return alert('Select file');
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const wb = XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+                const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                if(!confirm(`Import ${rows.length} students?`)) return;
+                const existing = await db.collection('students').get();
+                const batch = db.batch();
+                existing.forEach(d=>batch.delete(d.ref));
+                await batch.commit();
+                for(const row of rows){
+                    await db.collection('students').add({ student_name: row.student_name||row.name||'', student_id: row.student_id||row.id||'', ic_number: String(row.ic_number||row.ic||''), class: row.class||'', semester: parseInt(row.semester)||1 });
+                }
+                alert(`Imported ${rows.length} students`);
+                cached=null; loadStudents(); loadStats();
+            };
+            reader.readAsArrayBuffer(file);
+        };
+        document.getElementById('downloadTemplateBtn').onclick = () => {
+            const ws = XLSX.utils.aoa_to_sheet([['student_name','student_id','ic_number','class','semester'],['Ahmad','S001','010101010101','DFK5A',1]]);
+            XLSX.writeFile(XLSX.utils.book_new(),'template.xlsx');
+        };
+        
+        loadStats(); loadStudents();
+        setInterval(()=>{ loadStats(); loadStudents(); }, 120000);
+    </script>
+</body>
+</html>"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
