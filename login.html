@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ROLLCALL - Login</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -20,26 +20,10 @@
             min-height: 100vh;
             padding: 1rem;
         }
-        .login-container {
-            width: 100%;
-            max-width: 440px;
-        }
-        .logo {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        .logo h1 {
-            font-size: 2rem;
-            background: linear-gradient(135deg, #00f2fe, #4facfe);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        .logo p {
-            color: #6c7a91;
-            font-size: 0.85rem;
-            margin-top: 0.25rem;
-        }
+        .login-container { width: 100%; max-width: 440px; }
+        .logo { text-align: center; margin-bottom: 2rem; }
+        .logo h1 { font-size: 2rem; background: linear-gradient(135deg, #00f2fe, #4facfe); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .logo p { color: #6c7a91; font-size: 0.85rem; margin-top: 0.25rem; }
         .login-card {
             background: rgba(30, 36, 51, 0.95);
             backdrop-filter: blur(10px);
@@ -71,16 +55,8 @@
             color: #0a0f1f;
             box-shadow: 0 4px 12px rgba(0, 242, 254, 0.3);
         }
-        .input-group {
-            margin-bottom: 1rem;
-        }
-        .input-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #a0a8c0;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
+        .input-group { margin-bottom: 1rem; }
+        .input-group label { display: block; margin-bottom: 0.5rem; color: #a0a8c0; font-size: 0.85rem; font-weight: 500; }
         .input-wrapper {
             display: flex;
             align-items: center;
@@ -90,26 +66,9 @@
             padding: 0.8rem 1rem;
             transition: all 0.3s ease;
         }
-        .input-wrapper:focus-within {
-            border-color: #00f2fe;
-            box-shadow: 0 0 0 2px rgba(0, 242, 254, 0.2);
-        }
-        .input-wrapper i {
-            color: #00f2fe;
-            margin-right: 0.8rem;
-            font-size: 1rem;
-        }
-        .input-wrapper input {
-            background: transparent;
-            border: none;
-            width: 100%;
-            color: white;
-            font-size: 0.95rem;
-            outline: none;
-        }
-        .input-wrapper input::placeholder {
-            color: #4a5568;
-        }
+        .input-wrapper:focus-within { border-color: #00f2fe; box-shadow: 0 0 0 2px rgba(0, 242, 254, 0.2); }
+        .input-wrapper i { color: #00f2fe; margin-right: 0.8rem; }
+        .input-wrapper input { background: transparent; border: none; width: 100%; color: white; font-size: 0.95rem; outline: none; }
         .login-btn {
             width: 100%;
             background: linear-gradient(135deg, #00f2fe, #4facfe);
@@ -121,75 +80,29 @@
             color: #0a0f1f;
             cursor: pointer;
             margin-top: 1rem;
-            transition: transform 0.2s, box-shadow 0.2s;
         }
-        .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 242, 254, 0.3);
-        }
-        .error {
-            color: #f56565;
-            text-align: center;
-            margin-top: 1rem;
-            font-size: 0.85rem;
-            display: none;
-        }
-        .register-link {
-            text-align: center;
-            margin-top: 1.5rem;
-            padding-top: 1rem;
-            border-top: 1px solid #2d3748;
-            font-size: 0.85rem;
-            color: #8a94a8;
-        }
-        .register-link a {
-            color: #00f2fe;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        .info-text {
-            font-size: 0.7rem;
-            text-align: center;
-            margin-top: 1rem;
-            color: #4a5568;
-        }
+        .error { color: #f56565; text-align: center; margin-top: 1rem; font-size: 0.85rem; display: none; }
+        .register-link { text-align: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #2d3748; font-size: 0.85rem; color: #8a94a8; }
+        .register-link a { color: #00f2fe; text-decoration: none; font-weight: 600; }
+        .info-text { font-size: 0.7rem; text-align: center; margin-top: 1rem; color: #4a5568; }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <div class="logo">
-            <h1><i class="fas fa-qrcode"></i> ROLLCALL</h1>
-            <p>Attendance Management System</p>
-        </div>
+        <div class="logo"><h1><i class="fas fa-qrcode"></i> ROLLCALL</h1><p>Attendance Management System</p></div>
         <div class="login-card">
             <div class="role-selector">
                 <div class="role-btn" id="lecturerBtn">👨‍🏫 Lecturer</div>
                 <div class="role-btn" id="adminBtn">👑 Admin</div>
             </div>
             <form id="loginForm">
-                <div class="input-group">
-                    <label>Email Address</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-envelope"></i>
-                        <input type="email" id="email" placeholder="Enter your email" required>
-                    </div>
-                </div>
-                <div class="input-group">
-                    <label>Password</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="password" placeholder="Enter your password" required>
-                    </div>
-                </div>
+                <div class="input-group"><label>Email</label><div class="input-wrapper"><i class="fas fa-envelope"></i><input type="email" id="email" placeholder="Enter your email" required></div></div>
+                <div class="input-group"><label>Password</label><div class="input-wrapper"><i class="fas fa-lock"></i><input type="password" id="password" placeholder="Enter your password" required></div></div>
                 <button type="submit" class="login-btn">Login</button>
                 <div class="error" id="errorMsg"></div>
             </form>
-            <div class="register-link">
-                New lecturer? <a href="register.html">Register here</a>
-            </div>
-            <div class="info-text">
-                <i class="fas fa-info-circle"></i> Admin: amarosem3@gmail.com
-            </div>
+            <div class="register-link">New lecturer? <a href="register.html">Register here</a></div>
+            <div class="info-text"><i class="fas fa-info-circle"></i> Admin: amarosem3@gmail.com</div>
         </div>
     </div>
     <script>
@@ -210,57 +123,39 @@
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
 
-        lecturerBtn.addEventListener('click', () => {
+        lecturerBtn.onclick = () => {
             lecturerBtn.classList.add('active');
             adminBtn.classList.remove('active');
             emailInput.value = '';
-            emailInput.placeholder = 'Lecturer email';
             passwordInput.value = '';
-        });
-        adminBtn.addEventListener('click', () => {
+        };
+        adminBtn.onclick = () => {
             adminBtn.classList.add('active');
             lecturerBtn.classList.remove('active');
             emailInput.value = 'amarosem3@gmail.com';
             passwordInput.value = '';
-            emailInput.placeholder = 'Admin email';
-        });
+        };
         lecturerBtn.classList.add('active');
 
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        document.getElementById('loginForm').onsubmit = async (e) => {
             e.preventDefault();
             const email = emailInput.value.trim();
             const password = passwordInput.value;
             const errorDiv = document.getElementById('errorMsg');
             errorDiv.style.display = 'none';
-            if (!email || !password) {
-                errorDiv.innerText = 'Please enter email and password.';
-                errorDiv.style.display = 'block';
-                return;
-            }
+            if (!email || !password) { errorDiv.innerText = 'Enter email and password'; errorDiv.style.display = 'block'; return; }
             try {
                 const userCred = await auth.signInWithEmailAndPassword(email, password);
                 const user = userCred.user;
                 const doc = await db.collection('users').doc(user.uid).get();
-                if (!doc.exists) {
-                    await auth.signOut();
-                    errorDiv.innerText = 'User role not found. Contact admin.';
-                    errorDiv.style.display = 'block';
-                    return;
-                }
+                if (!doc.exists) { await auth.signOut(); errorDiv.innerText = 'User role not found'; errorDiv.style.display = 'block'; return; }
                 const role = doc.data().role;
                 sessionStorage.setItem('loggedIn', 'true');
                 sessionStorage.setItem('uid', user.uid);
                 sessionStorage.setItem('role', role);
-                if (role === 'admin') {
-                    window.location.href = 'index.html';
-                } else {
-                    window.location.href = 'lecturer.html';
-                }
-            } catch (err) {
-                errorDiv.innerText = err.message;
-                errorDiv.style.display = 'block';
-            }
-        });
+                window.location.href = role === 'admin' ? 'index.html' : 'lecturer.html';
+            } catch (err) { errorDiv.innerText = err.message; errorDiv.style.display = 'block'; }
+        };
     </script>
 </body>
 </html>
