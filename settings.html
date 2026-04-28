@@ -35,4 +35,114 @@
         .current-value { background: #2a3442; padding: 0.5rem 1rem; border-radius: 8px; }
         .radio-group, .theme-group { display: flex; gap: 1.5rem; flex-wrap: wrap; }
         .info-text { font-size: 0.8rem; color: #6c7a91; margin-top: 0.5rem; }
-        @media (max-width: 768px) { .sidebar { width: 70px; } .sidebar-header h2, .nav-item span { display: none; } .main-content { margin-left: 70px; } .setting-label { width: 100%; }
+        @media (max-width: 768px) { .sidebar { width: 70px; } .sidebar-header h2, .nav-item span { display: none; } .main-content { margin-left: 70px; } .setting-label { width: 100%; } }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="sidebar">
+            <div class="sidebar-header"><h2><i class="fas fa-qrcode"></i> ROLLCALL</h2></div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-item"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
+                <a href="attendance_list.html" class="nav-item"><i class="fas fa-list-ul"></i><span>Attendance Log</span></a>
+                <a href="lecturer.html" class="nav-item"><i class="fas fa-chalkboard-user"></i><span>Lecturer View</span></a>
+                <a href="settings.html" class="nav-item active"><i class="fas fa-cog"></i><span>Settings</span></a>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="top-bar"><div><h1>Settings</h1></div><button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+            
+            <div class="card">
+                <div class="card-header"><i class="fas fa-palette"></i> Appearance</div>
+                <div class="card-body">
+                    <div class="setting-row"><div class="setting-label">Theme:</div><div class="theme-group"><label><input type="radio" name="theme" id="themeLight" value="light"> Light</label><label><input type="radio" name="theme" id="themeDark" value="dark"> Dark</label><label><input type="radio" name="theme" id="themeSystem" value="system"> System</label></div></div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header"><i class="fas fa-clock"></i> Scanner Time Override</div>
+                <div class="card-body">
+                    <div class="setting-row"><div class="setting-label">Override Mode:</div><div class="radio-group"><label><input type="radio" name="mode" id="modeOff" value="off" checked> Off (Real Time)</label><label><input type="radio" name="mode" id="modeOn" value="on"> On (Custom Time)</label></div></div>
+                    <div class="setting-row"><div class="setting-label">Custom Time:</div><input type="time" id="customTime" step="1" value="07:30" class="form-control" style="width:150px;"></div>
+                    <div class="setting-row"><div class="setting-label">Force Status:</div><select id="forceStatus" class="form-control" style="width:200px;"><option value="">Auto</option><option value="present">Force Present</option><option value="late">Force Late</option><option value="invalid">Force Invalid</option></select></div>
+                    <div style="margin-top:1rem;"><button class="btn btn-primary" id="saveBtn">Save Settings</button><button class="btn" id="resetBtn">Reset</button></div>
+                    <div id="saveMsg" class="info-text" style="margin-top:1rem;"></div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header"><i class="fas fa-info-circle"></i> Current Config</div>
+                <div class="card-body">
+                    <div class="setting-row"><div class="setting-label">Scanner Mode:</div><div class="current-value" id="curMode">-</div></div>
+                    <div class="setting-row"><div class="setting-label">Custom Time:</div><div class="current-value" id="curTime">-</div></div>
+                    <div class="setting-row"><div class="setting-label">Force Status:</div><div class="current-value" id="curStatus">-</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBgqq_FVLDrlPew5mvUI84gJtNcNfGQchI",
+            authDomain: "rollcall-new-db.firebaseapp.com",
+            projectId: "rollcall-new-db",
+            storageBucket: "rollcall-new-db.firebasestorage.app",
+            messagingSenderId: "803179166995",
+            appId: "1:803179166995:web:d55ebffb4bfa934bb2eee6"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        if (!sessionStorage.getItem('loggedIn')) window.location.href = 'login.html';
+        document.getElementById('logoutBtn').onclick = () => { auth.signOut().then(()=>{ sessionStorage.clear(); window.location.href='login.html'; }); };
+        
+        function setTheme(theme){
+            document.body.classList.remove('light-theme','dark-theme');
+            if(theme==='light') document.body.classList.add('light-theme');
+            else if(theme==='dark') document.body.classList.add('dark-theme');
+            else if(theme==='system'){ const dark=window.matchMedia('(prefers-color-scheme: dark)').matches; document.body.classList.add(dark?'dark-theme':'light-theme'); }
+            localStorage.setItem('theme',theme);
+        }
+        const savedTheme = localStorage.getItem('theme')||'dark';
+        if(savedTheme==='light') document.getElementById('themeLight').checked=true;
+        else if(savedTheme==='dark') document.getElementById('themeDark').checked=true;
+        else document.getElementById('themeSystem').checked=true;
+        setTheme(savedTheme);
+        document.getElementById('themeLight').onclick=()=>setTheme('light');
+        document.getElementById('themeDark').onclick=()=>setTheme('dark');
+        document.getElementById('themeSystem').onclick=()=>setTheme('system');
+        
+        const SETTINGS_DOC='scanner_settings';
+        async function loadScanner(){
+            const doc = await db.collection('settings').doc(SETTINGS_DOC).get();
+            if(doc.exists){
+                const d=doc.data();
+                document.getElementById('curMode').innerHTML=d.override_mode==='on'?'ON (Custom)':'OFF (Real)';
+                document.getElementById('curTime').innerText=d.custom_time||'07:30';
+                document.getElementById('curStatus').innerText=d.force_status||'Auto';
+                if(d.override_mode==='on') document.getElementById('modeOn').checked=true;
+                else document.getElementById('modeOff').checked=true;
+                document.getElementById('customTime').value=d.custom_time||'07:30';
+                if(d.force_status) document.getElementById('forceStatus').value=d.force_status;
+            } else { document.getElementById('curMode').innerHTML='OFF (Real)'; document.getElementById('curTime').innerText='07:30'; document.getElementById('curStatus').innerText='Auto'; }
+        }
+        async function saveScanner(){
+            const mode = document.getElementById('modeOn').checked?'on':'off';
+            const time = document.getElementById('customTime').value;
+            const status = document.getElementById('forceStatus').value;
+            await db.collection('settings').doc(SETTINGS_DOC).set({ override_mode: mode, custom_time: time, force_status: status, updated_at: firebase.firestore.FieldValue.serverTimestamp() });
+            document.getElementById('saveMsg').innerHTML='✅ Saved! Pi will use new settings';
+            setTimeout(()=>document.getElementById('saveMsg').innerHTML='',3000);
+            loadScanner();
+        }
+        async function resetScanner(){
+            document.getElementById('modeOff').checked=true;
+            document.getElementById('customTime').value='07:30';
+            document.getElementById('forceStatus').value='';
+            await saveScanner();
+        }
+        document.getElementById('saveBtn').onclick=saveScanner;
+        document.getElementById('resetBtn').onclick=resetScanner;
+        loadScanner();
+    </script>
+</body>
+</html>
