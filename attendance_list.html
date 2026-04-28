@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ROLLCALL - Attendance Log</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -19,9 +19,9 @@
         .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.5rem; color: #a0a8c0; text-decoration: none; border-left: 3px solid transparent; }
         .nav-item:hover, .nav-item.active { background: #1a1f2e; border-left-color: #00f2fe; color: #00f2fe; }
         .main-content { flex: 1; margin-left: 280px; padding: 1.5rem; }
-        .top-bar { display: flex; justify-content: space-between; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #1e2433; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #1e2433; }
         .logout-btn { background: #1e2433; padding: 0.5rem 1rem; border-radius: 8px; border: none; color: #e0e0e0; cursor: pointer; }
-        .logout-btn:hover { background: #ff1744; }
+        .logout-btn:hover { background: #ff1744; color: white; }
         .controls { background: #1a1f2e; border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; }
         .date-filter { display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; }
         input, select { background: #2a3442; border: 1px solid #3a4557; padding: 0.5rem 1rem; border-radius: 8px; color: #e0e0e0; }
@@ -32,12 +32,11 @@
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         th { text-align: left; padding: 0.9rem 1rem; background: #151b26; color: #a0a8c0; border-bottom: 2px solid #00f2fe; }
         td { padding: 0.7rem 1rem; border-bottom: 1px solid #1e2433; }
-        tr:hover td { background: rgba(0, 242, 254, 0.05); }
+        tr:hover td { background: rgba(0,242,254,0.05); }
         .date-group-header td { background: #252e3e; font-weight: 600; color: #00f2fe; }
         .badge-present { background: rgba(0,230,118,0.2); color: #00e676; padding: 0.2rem 0.6rem; border-radius: 20px; display: inline-block; }
         .badge-late { background: rgba(255,193,7,0.2); color: #ffc107; padding: 0.2rem 0.6rem; border-radius: 20px; display: inline-block; }
-        .delete-record-btn { background: #ff1744; border: none; color: white; padding: 0.3rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.7rem; }
-        .delete-record-btn:hover { background: #ff4444; }
+        .delete-record-btn { background: #ff1744; border: none; color: white; padding: 0.3rem 0.6rem; border-radius: 6px; cursor: pointer; }
         .toast-msg { position: fixed; bottom: 20px; right: 20px; background: #00e676; color: #0a0f1f; padding: 0.75rem 1.25rem; border-radius: 10px; display: none; z-index: 1000; }
         @media (max-width: 768px) { .sidebar { width: 70px; } .sidebar-header h2, .nav-item span { display: none; } .main-content { margin-left: 70px; } }
     </style>
@@ -48,36 +47,30 @@
             <div class="sidebar-header"><h2><i class="fas fa-qrcode"></i> ROLLCALL</h2></div>
             <div class="nav-menu">
                 <a href="index.html" class="nav-item"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
-                <a href="#" class="nav-item active"><i class="fas fa-list-ul"></i><span>Attendance Log</span></a>
+                <a href="attendance_list.html" class="nav-item active"><i class="fas fa-list-ul"></i><span>Attendance Log</span></a>
                 <a href="lecturer.html" class="nav-item"><i class="fas fa-chalkboard-user"></i><span>Lecturer View</span></a>
+                <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
             </div>
         </div>
         <div class="main-content">
-            <div class="top-bar">
-                <div><h1>Attendance Log</h1><p>View, filter, and delete records</p></div>
-                <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
-            </div>
+            <div class="top-bar"><div><h1>Attendance Log</h1></div><button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
             <div class="controls">
                 <div class="date-filter">
                     <input type="date" id="startDate"> to <input type="date" id="endDate">
                     <button class="btn" onclick="loadAttendance()">Filter</button>
                     <button class="btn" onclick="resetDates()">Reset</button>
-                    <button class="btn btn-primary" id="downloadCsvBtn">Download CSV</button>
-                    <button class="btn btn-primary" id="downloadWeeklyBtn">Weekly Report</button>
-                    <button class="btn btn-danger" id="resetWeeklyBtn">Reset This Week</button>
+                    <button class="btn btn-primary" id="downloadCsvBtn">CSV</button>
+                    <button class="btn btn-primary" id="downloadWeeklyBtn">Weekly</button>
+                    <button class="btn btn-danger" id="resetWeeklyBtn">Reset Week</button>
                 </div>
                 <div>Total: <strong id="totalRecords">0</strong></div>
             </div>
             <div class="attendance-table">
-                <table id="attendanceTable">
-                    <thead><tr><th>#</th><th>Student Name</th><th>Student ID</th><th>IC Number</th><th>Class</th><th>Status</th><th>Scan Time</th><th>Action</th></tr></thead>
-                    <tbody id="attendanceBody"><tr><td colspan="8" class="no-data">Loading...</td></tr></tbody>
-                </table>
+                <table><thead><tr><th>#</th><th>Student Name</th><th>Student ID</th><th>IC</th><th>Class</th><th>Status</th><th>Time</th><th>Action</th></tr></thead><tbody id="attendanceBody"><tr><td colspan="8">Loading...</td></tr></tbody></table>
             </div>
         </div>
     </div>
     <div id="toastMsg" class="toast-msg"></div>
-
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyBgqq_FVLDrlPew5mvUI84gJtNcNfGQchI",
@@ -89,7 +82,6 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        
         if (!sessionStorage.getItem('loggedIn')) window.location.href = 'login.html';
         document.getElementById('logoutBtn').onclick = () => { sessionStorage.clear(); window.location.href = 'login.html'; };
         
@@ -102,131 +94,83 @@
             snap.forEach(doc => { const d = doc.data(); studentMap.set(d.student_id, { name: d.student_name, ic: d.ic_number, class: d.class || 'N/A' }); });
         }
         
-        async function deleteAttendanceRecord(recordId) {
-            if (!confirm('🗑️ Delete this attendance record? This cannot be undone.')) return;
-            try {
-                await db.collection('attendance').doc(recordId).delete();
-                showToast('✅ Record deleted successfully');
-                await loadAttendance();
-            } catch(e) { showToast('❌ Error: ' + e.message); }
-        }
+        function showToast(msg) { const t = document.getElementById('toastMsg'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
         
-        function showToast(msg) {
-            const toast = document.getElementById('toastMsg');
-            toast.innerText = msg;
-            toast.style.display = 'block';
-            setTimeout(() => toast.style.display = 'none', 3000);
+        async function deleteRecord(id) {
+            if(!confirm('Delete this record?')) return;
+            await db.collection('attendance').doc(id).delete();
+            showToast('Deleted');
+            loadAttendance();
         }
         
         async function loadAttendance() {
             const tbody = document.getElementById('attendanceBody');
             tbody.innerHTML = '<tr><td colspan="8">Loading...</td></tr>';
-            let snapshot = await db.collection('attendance').orderBy('scanned_at', 'desc').get();
+            let snap = await db.collection('attendance').orderBy('scanned_at','desc').get();
             let records = [];
-            snapshot.forEach(doc => { let data = doc.data(); let ts = data.scanned_at ? data.scanned_at.toDate() : null; records.push({ id: doc.id, ...data, scanned_at: ts }); });
-            
+            snap.forEach(doc => { let d = doc.data(); let ts = d.scanned_at ? d.scanned_at.toDate() : null; records.push({ id: doc.id, ...d, scanned_at: ts }); });
             let start = document.getElementById('startDate').value, end = document.getElementById('endDate').value;
-            if (start) { let s = new Date(start + 'T00:00:00+08:00'); records = records.filter(r => r.scanned_at && r.scanned_at >= s); }
-            if (end) { let e = new Date(end + 'T23:59:59+08:00'); records = records.filter(r => r.scanned_at && r.scanned_at <= e); }
+            if(start) { let s = new Date(start+'T00:00:00+08:00'); records = records.filter(r => r.scanned_at && r.scanned_at >= s); }
+            if(end) { let e = new Date(end+'T23:59:59+08:00'); records = records.filter(r => r.scanned_at && r.scanned_at <= e); }
             records.sort((a,b) => (b.scanned_at||0) - (a.scanned_at||0));
             allRecords = records;
             document.getElementById('totalRecords').innerText = records.length;
-            if (!records.length) { tbody.innerHTML = '<tr><td colspan="8">No records</td></tr>'; return; }
-            
+            if(!records.length) { tbody.innerHTML = '<tr><td colspan="8">No records</td></tr>'; return; }
             const grouped = {};
-            records.forEach(rec => {
-                let dateKey = 'Unknown';
-                if (rec.scanned_at) { const malaysiaDate = new Date(rec.scanned_at.getTime() + (8 * 60 * 60 * 1000)); dateKey = malaysiaDate.toISOString().split('T')[0]; }
-                if (!grouped[dateKey]) grouped[dateKey] = [];
-                grouped[dateKey].push(rec);
-            });
-            const sortedDates = Object.keys(grouped).sort().reverse();
-            let html = '', counter = 1;
-            for (const date of sortedDates) {
-                const dayRecords = grouped[date];
-                const displayDate = new Date(date + 'T00:00:00+08:00').toLocaleDateString('en-MY', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                html += `<tr class="date-group-header"><td colspan="8"><i class="fas fa-calendar-day"></i> ${displayDate} (${dayRecords.length} records)</td></tr>`;
-                dayRecords.forEach(rec => {
+            records.forEach(rec => { let dk = rec.scanned_at ? new Date(rec.scanned_at.getTime()+8*3600000).toISOString().split('T')[0] : 'Unknown'; if(!grouped[dk]) grouped[dk] = []; grouped[dk].push(rec); });
+            let html = '', cnt = 1;
+            for(let date of Object.keys(grouped).sort().reverse()){
+                let display = new Date(date+'T00:00:00+08:00').toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+                html += `<tr class="date-group-header"><td colspan="8"><i class="fas fa-calendar-day"></i> ${display} (${grouped[date].length})</td></tr>`;
+                grouped[date].forEach(rec => {
                     let stu = studentMap.get(rec.student_id) || {};
-                    let displayTime = rec.scanned_at ? rec.scanned_at.toLocaleTimeString('en-MY', { timeZone: 'Asia/Kuala_Lumpur', hour: '2-digit', minute: '2-digit', hour12: true }) : 'Unknown';
-                    let statusBadge = rec.status === 'present' ? 'badge-present' : 'badge-late';
-                    let statusText = rec.status === 'present' ? 'Present' : 'Late';
-                    let statusIcon = rec.status === 'present' ? 'fa-check-circle' : 'fa-clock';
-                    html += `<tr>
-                        <td>${counter++}</td>
-                        <td>${escapeHtml(stu.name || rec.student_name || '?')}</td>
-                        <td>${escapeHtml(rec.student_id || '-')}</td>
-                        <td>${escapeHtml(stu.ic || rec.ic_number || '-')}</td>
-                        <td>${escapeHtml(stu.class || 'N/A')}</td>
-                        <td><span class="${statusBadge}"><i class="fas ${statusIcon}"></i> ${statusText}</span></td>
-                        <td>${displayTime}</td>
-                        <td><button class="delete-record-btn" data-id="${rec.id}"><i class="fas fa-trash-alt"></i> Delete</button></td>
-                    </tr>`;
+                    let time = rec.scanned_at ? rec.scanned_at.toLocaleTimeString('en-MY',{timeZone:'Asia/Kuala_Lumpur',hour:'2-digit',minute:'2-digit',hour12:true}) : '?';
+                    let badge = rec.status === 'present' ? 'badge-present' : 'badge-late';
+                    let icon = rec.status === 'present' ? 'fa-check-circle' : 'fa-clock';
+                    html += `<tr><td>${cnt++}</td><td>${stu.name||rec.student_name||'?'}</td><td>${rec.student_id||'-'}</td><td>${stu.ic||rec.ic_number||'-'}</td><td>${stu.class||'N/A'}</td><td><span class="${badge}"><i class="fas ${icon}"></i> ${rec.status}</span></td><td>${time}</td><td><button class="delete-record-btn" data-id="${rec.id}"><i class="fas fa-trash"></i></button></td></tr>`;
                 });
             }
             tbody.innerHTML = html;
-            document.querySelectorAll('.delete-record-btn').forEach(btn => { btn.onclick = () => deleteAttendanceRecord(btn.dataset.id); });
+            document.querySelectorAll('.delete-record-btn').forEach(btn => { btn.onclick = () => deleteRecord(btn.dataset.id); });
         }
         
-        function escapeHtml(str) { return String(str||'').replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
         function resetDates() { document.getElementById('startDate').value = ''; document.getElementById('endDate').value = ''; loadAttendance(); }
         
         document.getElementById('downloadCsvBtn').onclick = () => {
-            if (!allRecords.length) { showToast('No data'); return; }
-            let csv = [['Student Name','Student ID','IC Number','Class','Status','Date','Scan Time']];
-            allRecords.forEach(r => {
-                let stu = studentMap.get(r.student_id) || {};
-                let date = r.scanned_at ? new Date(r.scanned_at.getTime() + 8*3600000).toLocaleDateString() : '';
-                let time = r.scanned_at ? new Date(r.scanned_at.getTime() + 8*3600000).toLocaleTimeString() : '';
-                csv.push([stu.name||r.student_name||'', r.student_id||'', stu.ic||r.ic_number||'', stu.class||'', r.status, date, time]);
-            });
-            const blob = new Blob(["\uFEFF" + csv.map(row => row.map(c => `"${c}"`).join(',')).join('\n')], { type: 'text/csv' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `attendance_${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
-            URL.revokeObjectURL(link.href);
-            showToast('CSV downloaded');
+            if(!allRecords.length) return showToast('No data');
+            let csv = [['Name','ID','IC','Class','Status','Date','Time']];
+            allRecords.forEach(r => { let stu = studentMap.get(r.student_id)||{}; let d = r.scanned_at ? new Date(r.scanned_at.getTime()+8*3600000).toLocaleDateString() : ''; let t = r.scanned_at ? new Date(r.scanned_at.getTime()+8*3600000).toLocaleTimeString() : ''; csv.push([stu.name||r.student_name||'', r.student_id||'', stu.ic||r.ic_number||'', stu.class||'', r.status, d, t]); });
+            const blob = new Blob(["\uFEFF"+csv.map(row=>row.map(c=>`"${c}"`).join(',')).join('\n')], {type:'text/csv'});
+            const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `attendance.csv`; link.click(); URL.revokeObjectURL(link.href);
         };
         
         document.getElementById('downloadWeeklyBtn').onclick = async () => {
             const now = new Date(), day = now.getDay();
-            const monday = new Date(now); monday.setDate(now.getDate() + (day === 0 ? -6 : 1 - day)); monday.setHours(0,0,0,0);
-            const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6); sunday.setHours(23,59,59,999);
-            const snap = await db.collection('attendance').where('scanned_at', '>=', monday).where('scanned_at', '<=', sunday).get();
-            if (snap.empty) { showToast('No records this week'); return; }
-            let csv = [['Student Name','Student ID','Class','Date','Status']];
-            snap.forEach(doc => {
-                let d = doc.data();
-                let stu = studentMap.get(d.student_id) || {};
-                let date = d.scanned_at ? new Date(d.scanned_at.getTime() + 8*3600000).toLocaleDateString() : '';
-                csv.push([stu.name||d.student_name||'', d.student_id||'', stu.class||'', date, d.status]);
-            });
-            const blob = new Blob(["\uFEFF" + csv.map(row => row.map(c => `"${c}"`).join(',')).join('\n')], { type: 'text/csv' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `weekly_${monday.toISOString().split('T')[0]}.csv`;
-            link.click();
-            URL.revokeObjectURL(link.href);
-            showToast('Weekly report downloaded');
+            const mon = new Date(now); mon.setDate(now.getDate()+(day===0?-6:1-day)); mon.setHours(0,0,0,0);
+            const sun = new Date(mon); sun.setDate(mon.getDate()+6); sun.setHours(23,59,59,999);
+            const snap = await db.collection('attendance').where('scanned_at','>=',mon).where('scanned_at','<=',sun).get();
+            if(snap.empty) return showToast('No data');
+            let csv = [['Name','ID','Class','Date','Status']];
+            snap.forEach(d=>{ let da = d.data(); let stu = studentMap.get(da.student_id)||{}; let dt = da.scanned_at ? new Date(da.scanned_at.getTime()+8*3600000).toLocaleDateString() : ''; csv.push([stu.name||da.student_name||'', da.student_id||'', stu.class||'', dt, da.status]); });
+            const blob = new Blob(["\uFEFF"+csv.map(row=>row.map(c=>`"${c}"`).join(',')).join('\n')], {type:'text/csv'});
+            const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `weekly.csv`; link.click(); URL.revokeObjectURL(link.href);
         };
         
         document.getElementById('resetWeeklyBtn').onclick = async () => {
-            if (!confirm('⚠️ Delete ALL records for this week?')) return;
+            if(!confirm('Delete all records this week?')) return;
             const now = new Date(), day = now.getDay();
-            const monday = new Date(now); monday.setDate(now.getDate() + (day === 0 ? -6 : 1 - day)); monday.setHours(0,0,0,0);
-            const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6); sunday.setHours(23,59,59,999);
-            const snap = await db.collection('attendance').where('scanned_at', '>=', monday).where('scanned_at', '<=', sunday).get();
-            if (snap.empty) { showToast('No records this week'); return; }
+            const mon = new Date(now); mon.setDate(now.getDate()+(day===0?-6:1-day)); mon.setHours(0,0,0,0);
+            const sun = new Date(mon); sun.setDate(mon.getDate()+6); sun.setHours(23,59,59,999);
+            const snap = await db.collection('attendance').where('scanned_at','>=',mon).where('scanned_at','<=',sun).get();
             const batch = db.batch();
-            snap.forEach(doc => batch.delete(doc.ref));
+            snap.forEach(d=>batch.delete(d.ref));
             await batch.commit();
-            showToast(`✅ Deleted ${snap.size} records`);
-            await loadAttendance();
+            showToast(`Deleted ${snap.size} records`);
+            loadAttendance();
         };
         
         loadStudentMap().then(loadAttendance);
-        setInterval(() => loadStudentMap().then(loadAttendance), 60000);
+        setInterval(()=>loadStudentMap().then(loadAttendance), 60000);
     </script>
 </body>
 </html>
