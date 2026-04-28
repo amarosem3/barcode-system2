@@ -12,31 +12,66 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: #0f1219;
+            background: var(--bg-primary);
             font-family: 'Inter', sans-serif;
-            color: #e0e0e0;
+            color: var(--text-primary);
+            transition: background 0.3s ease, color 0.3s ease;
         }
+        
+        /* Light Theme Variables */
+        body.light-theme {
+            --bg-primary: #f0f2f5;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-sidebar: #ffffff;
+            --text-primary: #1a1a2e;
+            --text-secondary: #4a5568;
+            --border-color: #e2e8f0;
+            --accent-color: #00b4d8;
+            --accent-gradient: linear-gradient(135deg, #00b4d8, #0077b6);
+            --hover-bg: #f0f2f5;
+        }
+        
+        /* Dark Theme Variables (Default) */
+        body.dark-theme {
+            --bg-primary: #0f1219;
+            --bg-secondary: #1a1f2e;
+            --bg-card: #1a1f2e;
+            --bg-sidebar: #0a0d14;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a8c0;
+            --border-color: #1e2433;
+            --accent-color: #00f2fe;
+            --accent-gradient: linear-gradient(135deg, #00f2fe, #4facfe);
+            --hover-bg: #2a3442;
+        }
+        
+        body.system-theme {
+            /* Will be set by system preference */
+        }
+        
         .app-container { display: flex; min-height: 100vh; }
         .sidebar {
             width: 280px;
-            background: #0a0d14;
-            border-right: 1px solid #1e2433;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
             position: fixed;
             height: 100vh;
+            transition: background 0.3s ease;
         }
         .sidebar-header {
             padding: 1.5rem;
-            border-bottom: 1px solid #1e2433;
+            border-bottom: 1px solid var(--border-color);
         }
         .sidebar-header h2 {
-            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            background: var(--accent-gradient);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
         }
         .sidebar-header p {
             font-size: 0.75rem;
-            color: #6c7a91;
+            color: var(--text-secondary);
             margin-top: 0.25rem;
         }
         .nav-menu { padding: 1rem 0; }
@@ -45,15 +80,15 @@
             align-items: center;
             gap: 0.75rem;
             padding: 0.75rem 1.5rem;
-            color: #a0a8c0;
+            color: var(--text-secondary);
             text-decoration: none;
             border-left: 3px solid transparent;
             transition: all 0.3s ease;
         }
         .nav-item:hover, .nav-item.active {
-            background: #1a1f2e;
-            border-left-color: #00f2fe;
-            color: #00f2fe;
+            background: var(--hover-bg);
+            border-left-color: var(--accent-color);
+            color: var(--accent-color);
         }
         .main-content {
             flex: 1;
@@ -66,70 +101,77 @@
             align-items: center;
             margin-bottom: 2rem;
             padding-bottom: 1rem;
-            border-bottom: 1px solid #1e2433;
+            border-bottom: 1px solid var(--border-color);
         }
         .page-title h1 {
             font-size: 1.5rem;
             font-weight: 600;
         }
         .page-title p {
-            color: #6c7a91;
+            color: var(--text-secondary);
             font-size: 0.85rem;
             margin-top: 0.25rem;
         }
         .logout-btn {
-            background: #1e2433;
+            background: var(--bg-secondary);
             padding: 0.5rem 1rem;
             border-radius: 8px;
-            border: none;
-            color: #e0e0e0;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
             cursor: pointer;
+            transition: all 0.3s ease;
         }
-        .logout-btn:hover { background: #ff1744; color: white; }
+        .logout-btn:hover { background: #ff1744; color: white; border-color: #ff1744; }
         .card {
-            background: #1a1f2e;
+            background: var(--bg-card);
             border-radius: 16px;
-            border: 1px solid #1e2433;
+            border: 1px solid var(--border-color);
             margin-bottom: 1.5rem;
             overflow: hidden;
+            transition: background 0.3s ease;
         }
         .card-header {
-            background: #151b26;
+            background: var(--bg-secondary);
             padding: 1rem 1.25rem;
-            border-bottom: 1px solid #1e2433;
+            border-bottom: 1px solid var(--border-color);
             font-weight: 600;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
-        .card-header i { color: #00f2fe; }
+        .card-header i { color: var(--accent-color); }
         .card-body { padding: 1.25rem; }
         .form-control {
-            background: #2a3442;
-            border: 1px solid #3a4557;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             padding: 0.7rem 1rem;
             border-radius: 10px;
-            color: #e0e0e0;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(0, 242, 254, 0.2);
         }
         .btn {
-            background: #2a3442;
-            border: 1px solid #3a4557;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             padding: 0.6rem 1.2rem;
             border-radius: 10px;
             font-weight: 500;
-            color: #e0e0e0;
+            color: var(--text-primary);
             cursor: pointer;
             transition: all 0.3s ease;
         }
         .btn-primary {
-            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            background: var(--accent-gradient);
             border-color: transparent;
             color: #0a0f1f;
         }
-        .btn-success {
-            background: linear-gradient(135deg, #00e676, #00c853);
-            border-color: transparent;
-            color: white;
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 242, 254, 0.3);
         }
         .setting-row {
             display: flex;
@@ -141,10 +183,10 @@
         .setting-label {
             width: 180px;
             font-weight: 500;
-            color: #00f2fe;
+            color: var(--accent-color);
         }
         .current-value {
-            background: #2a3442;
+            background: var(--bg-secondary);
             padding: 0.5rem 1rem;
             border-radius: 8px;
             font-family: monospace;
@@ -152,19 +194,30 @@
         }
         .info-text {
             font-size: 0.8rem;
-            color: #6c7a91;
+            color: var(--text-secondary);
             margin-top: 0.5rem;
         }
-        .radio-group {
+        .radio-group, .theme-group {
             display: flex;
             gap: 1.5rem;
+            flex-wrap: wrap;
         }
-        .radio-group label {
+        .radio-group label, .theme-group label {
             display: flex;
             align-items: center;
             gap: 0.5rem;
             cursor: pointer;
         }
+        .theme-preview {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+        }
+        .theme-preview.light { background: #e2e8f0; color: #1a1a2e; }
+        .theme-preview.dark { background: #2a3442; color: #e0e0e0; }
         @media (max-width: 768px) {
             .sidebar { width: 70px; }
             .sidebar-header h2, .sidebar-header p, .nav-item span { display: none; }
@@ -192,11 +245,41 @@
             <div class="top-bar">
                 <div class="page-title">
                     <h1>Settings</h1>
-                    <p>Configure scanner time override</p>
+                    <p>Configure application preferences</p>
                 </div>
                 <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </div>
             
+            <!-- Theme Settings Card -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-palette"></i> Appearance
+                </div>
+                <div class="card-body">
+                    <div class="setting-row">
+                        <div class="setting-label">Theme:</div>
+                        <div class="theme-group">
+                            <label>
+                                <input type="radio" name="theme" id="themeLight" value="light"> 
+                                <span class="theme-preview light"><i class="fas fa-sun"></i> Light</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="theme" id="themeDark" value="dark"> 
+                                <span class="theme-preview dark"><i class="fas fa-moon"></i> Dark</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="theme" id="themeSystem" value="system"> 
+                                <i class="fas fa-desktop"></i> System Default
+                            </label>
+                        </div>
+                    </div>
+                    <div class="info-text">
+                        <i class="fas fa-info-circle"></i> Theme preference is saved to your account and applied across all pages.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Scanner Settings Card -->
             <div class="card">
                 <div class="card-header">
                     <i class="fas fa-clock"></i> Scanner Time Override
@@ -240,13 +323,18 @@
                 </div>
             </div>
             
+            <!-- Current Configuration Card -->
             <div class="card">
                 <div class="card-header">
-                    <i class="fas fa-info-circle"></i> Current Scanner Configuration
+                    <i class="fas fa-info-circle"></i> Current Configuration
                 </div>
                 <div class="card-body">
                     <div class="setting-row">
-                        <div class="setting-label">Current Mode:</div>
+                        <div class="setting-label">Current Theme:</div>
+                        <div class="current-value" id="currentTheme">Loading...</div>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-label">Scanner Mode:</div>
                         <div class="current-value" id="currentMode">Loading...</div>
                     </div>
                     <div class="setting-row">
@@ -260,6 +348,7 @@
                 </div>
             </div>
             
+            <!-- Help Card -->
             <div class="card">
                 <div class="card-header">
                     <i class="fas fa-question-circle"></i> How It Works
@@ -271,7 +360,7 @@
                     <p><strong>4.</strong> The attendance record will show your selected time</p>
                     <p><strong>💡 Tip:</strong> Use this to demonstrate Present (7:30 AM) and Late (8:00 AM) scans anytime!</p>
                     
-                    <div style="margin-top: 1rem; padding: 0.75rem; background: #2a3442; border-radius: 10px;">
+                    <div style="margin-top: 1rem; padding: 0.75rem; background: var(--bg-secondary); border-radius: 10px;">
                         <strong>📋 Time Rules:</strong><br>
                         • Before 7:45 AM → <span style="color: #00e676;">Present</span><br>
                         • 7:45 AM - 8:15 AM → <span style="color: #ffc107;">Late</span><br>
@@ -302,8 +391,72 @@
         };
         
         const SETTINGS_DOC = 'scanner_settings';
+        const THEME_SETTINGS_DOC = 'user_preferences';
         
-        async function loadSettings() {
+        // ============ THEME FUNCTIONS ============
+        function setTheme(theme) {
+            const body = document.body;
+            body.classList.remove('light-theme', 'dark-theme', 'system-theme');
+            
+            if (theme === 'light') {
+                body.classList.add('light-theme');
+            } else if (theme === 'dark') {
+                body.classList.add('dark-theme');
+            } else if (theme === 'system') {
+                body.classList.add('system-theme');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (prefersDark) {
+                    body.classList.add('dark-theme');
+                    body.classList.remove('light-theme');
+                } else {
+                    body.classList.add('light-theme');
+                    body.classList.remove('dark-theme');
+                }
+            }
+            
+            localStorage.setItem('rollcall_theme', theme);
+        }
+        
+        async function loadUserTheme() {
+            const userId = sessionStorage.getItem('uid');
+            if (!userId) return;
+            
+            try {
+                const doc = await db.collection('users').doc(userId).get();
+                if (doc.exists && doc.data().theme) {
+                    const savedTheme = doc.data().theme;
+                    setTheme(savedTheme);
+                    // Update radio button
+                    if (savedTheme === 'light') document.getElementById('themeLight').checked = true;
+                    else if (savedTheme === 'dark') document.getElementById('themeDark').checked = true;
+                    else if (savedTheme === 'system') document.getElementById('themeSystem').checked = true;
+                } else {
+                    // Default to system preference
+                    setTheme('system');
+                    document.getElementById('themeSystem').checked = true;
+                }
+                document.getElementById('currentTheme').innerHTML = document.getElementById('themeLight').checked ? 'Light 🌞' : (document.getElementById('themeDark').checked ? 'Dark 🌙' : 'System Default');
+            } catch (e) {
+                console.error('Error loading theme:', e);
+            }
+        }
+        
+        async function saveUserTheme(theme) {
+            const userId = sessionStorage.getItem('uid');
+            if (!userId) return;
+            
+            try {
+                await db.collection('users').doc(userId).set({
+                    theme: theme
+                }, { merge: true });
+                console.log('Theme saved:', theme);
+            } catch (e) {
+                console.error('Error saving theme:', e);
+            }
+        }
+        
+        // ============ SCANNER SETTINGS FUNCTIONS ============
+        async function loadScannerSettings() {
             try {
                 const doc = await db.collection('settings').doc(SETTINGS_DOC).get();
                 if (doc.exists) {
@@ -325,18 +478,18 @@
                     document.getElementById('currentStatus').innerText = 'Auto (Based on Time)';
                 }
             } catch (e) {
-                console.error('Error loading settings:', e);
+                console.error('Error loading scanner settings:', e);
             }
         }
         
-        async function saveSettings() {
+        async function saveScannerSettings() {
             const mode = document.getElementById('modeOn').checked ? 'on' : 'off';
             const customTime = document.getElementById('customTime').value;
             const forceStatus = document.getElementById('forceStatus').value;
             
             const message = document.getElementById('saveMessage');
             message.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Saving settings...';
-            message.style.color = '#6c7a91';
+            message.style.color = 'var(--text-secondary)';
             
             try {
                 await db.collection('settings').doc(SETTINGS_DOC).set({
@@ -347,7 +500,7 @@
                 });
                 message.innerHTML = '<i class="fas fa-check-circle"></i> Settings saved successfully! Raspberry Pi will use these settings for next scan.';
                 message.style.color = '#00e676';
-                loadSettings();
+                loadScannerSettings();
                 
                 setTimeout(() => {
                     message.innerHTML = '';
@@ -358,17 +511,44 @@
             }
         }
         
-        async function resetSettings() {
+        async function resetScannerSettings() {
             document.getElementById('modeOff').checked = true;
             document.getElementById('customTime').value = '07:30';
             document.getElementById('forceStatus').value = '';
-            await saveSettings();
+            await saveScannerSettings();
         }
         
-        document.getElementById('saveSettingsBtn').onclick = saveSettings;
-        document.getElementById('resetSettingsBtn').onclick = resetSettings;
+        // ============ EVENT LISTENERS ============
+        document.getElementById('themeLight').onclick = () => {
+            setTheme('light');
+            saveUserTheme('light');
+            document.getElementById('currentTheme').innerHTML = 'Light 🌞';
+        };
+        document.getElementById('themeDark').onclick = () => {
+            setTheme('dark');
+            saveUserTheme('dark');
+            document.getElementById('currentTheme').innerHTML = 'Dark 🌙';
+        };
+        document.getElementById('themeSystem').onclick = () => {
+            setTheme('system');
+            saveUserTheme('system');
+            document.getElementById('currentTheme').innerHTML = 'System Default';
+        };
         
-        loadSettings();
+        document.getElementById('saveSettingsBtn').onclick = saveScannerSettings;
+        document.getElementById('resetSettingsBtn').onclick = resetScannerSettings;
+        
+        // Initialize
+        loadUserTheme();
+        loadScannerSettings();
+        
+        // Listen for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            const currentTheme = localStorage.getItem('rollcall_theme');
+            if (currentTheme === 'system') {
+                setTheme('system');
+            }
+        });
     </script>
 </body>
 </html>
