@@ -1,0 +1,71 @@
+/* Theme CSS - Include this in all HTML files */
+:root {
+    --bg-primary: #0f1219;
+    --bg-secondary: #1a1f2e;
+    --bg-card: #1a1f2e;
+    --bg-sidebar: #0a0d14;
+    --text-primary: #e0e0e0;
+    --text-secondary: #a0a8c0;
+    --border-color: #1e2433;
+    --accent-color: #00f2fe;
+    --accent-gradient: linear-gradient(135deg, #00f2fe, #4facfe);
+    --hover-bg: #2a3442;
+    --success: #00e676;
+    --warning: #ffc107;
+    --error: #ff1744;
+}
+
+body.light-theme {
+    --bg-primary: #f0f2f5;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --bg-sidebar: #ffffff;
+    --text-primary: #1a1a2e;
+    --text-secondary: #4a5568;
+    --border-color: #e2e8f0;
+    --accent-color: #0077b6;
+    --accent-gradient: linear-gradient(135deg, #00b4d8, #0077b6);
+    --hover-bg: #f0f2f5;
+    --success: #00c853;
+    --warning: #ff9800;
+    --error: #d50000;
+}
+
+body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Apply theme variables to components */
+.sidebar {
+    background: var(--bg-sidebar);
+    border-right-color: var(--border-color);
+}
+
+.card {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+.card-header {
+    background: var(--bg-secondary);
+    border-bottom-color: var(--border-color);
+}
+
+.btn {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.form-control {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.form-control:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(0, 242, 254, 0.2);
+}
