@@ -182,7 +182,7 @@
             <div class="attendance-table">
                 <table>
                     <thead><tr><th>#</th><th>Student Name</th><th>Student ID</th><th>IC</th><th>Class</th><th>Status</th><th>Time</th><th>Action</th></tr></thead>
-                    <tbody id="attendanceBody"><tr><td colspan="8">Loading...</td></tr></tbody>
+                    <tbody id="attendanceBody"><tr><td colspan="8">Loading...<\/td><\/tr> </tbody>
                 </table>
             </div>
         </div>
@@ -234,21 +234,44 @@
             loadAttendance();
         }
         
+        // ============ OPTIMIZED LOAD ATTENDANCE (with limit 100) ============
         async function loadAttendance() {
             const tbody = document.getElementById('attendanceBody');
             tbody.innerHTML = '<tr><td colspan="8">Loading...<\/td><\/tr>';
-            let snap = await db.collection('attendance').orderBy('scanned_at','desc').get();
+            
+            // OPTIMIZED: limit to last 100 records for fast loading
+            let snapshot = await db.collection('attendance')
+                .orderBy('scanned_at', 'desc')
+                .limit(100)
+                .get();
+            
             let records = [];
-            snap.forEach(doc => { let d = doc.data(); let ts = d.scanned_at ? d.scanned_at.toDate() : null; records.push({ id: doc.id, ...d, scanned_at: ts }); });
-            let start = document.getElementById('startDate').value, end = document.getElementById('endDate').value;
+            snapshot.forEach(doc => {
+                let d = doc.data();
+                let ts = d.scanned_at ? d.scanned_at.toDate() : null;
+                records.push({ id: doc.id, ...d, scanned_at: ts });
+            });
+            
+            // Apply date filters
+            let start = document.getElementById('startDate').value;
+            let end = document.getElementById('endDate').value;
             if(start) { let s = new Date(start+'T00:00:00+08:00'); records = records.filter(r => r.scanned_at && r.scanned_at >= s); }
             if(end) { let e = new Date(end+'T23:59:59+08:00'); records = records.filter(r => r.scanned_at && r.scanned_at <= e); }
+            
             records.sort((a,b) => (b.scanned_at||0) - (a.scanned_at||0));
             allRecords = records;
             document.getElementById('totalRecords').innerText = records.length;
+            
             if(!records.length) { tbody.innerHTML = '<tr><td colspan="8">No records<\/td><\/tr>'; return; }
+            
+            // Group by date using Malaysia time
             const grouped = {};
-            records.forEach(rec => { let dk = rec.scanned_at ? new Date(rec.scanned_at.getTime()+8*3600000).toISOString().split('T')[0] : 'Unknown'; if(!grouped[dk]) grouped[dk] = []; grouped[dk].push(rec); });
+            records.forEach(rec => {
+                let dk = rec.scanned_at ? new Date(rec.scanned_at.getTime()+8*3600000).toISOString().split('T')[0] : 'Unknown';
+                if(!grouped[dk]) grouped[dk] = [];
+                grouped[dk].push(rec);
+            });
+            
             let html = '', cnt = 1;
             for(let date of Object.keys(grouped).sort().reverse()){
                 let display = new Date(date+'T00:00:00+08:00').toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'long',day:'numeric'});
@@ -266,7 +289,7 @@
                         <td>${escapeHtml(stu.class||'N/A')}<\/td>
                         <td><span class="${badge}"><i class="fas ${icon}"></i> ${rec.status}<\/span><\/td>
                         <td>${time}<\/td>
-                        <td><button class="delete-record-btn" data-id="${rec.id}"><i class="fas fa-trash"></i><\/button><\/td>
+                        <td><button class="delete-record-btn" data-id="${rec.id}"><i class="fas fa-trash"><\/i><\/button><\/td>
                     <\/tr>`;
                 });
             }
