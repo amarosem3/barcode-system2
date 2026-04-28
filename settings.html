@@ -11,30 +11,125 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #0f1219; font-family: 'Inter', sans-serif; color: #e0e0e0; }
+        
+        /* LIGHT THEME (DEFAULT) */
+        :root {
+            --bg-primary: #f0f2f5;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-sidebar: #ffffff;
+            --text-primary: #1a1a2e;
+            --text-secondary: #4a5568;
+            --border-color: #e2e8f0;
+            --accent-color: #0891b2;
+            --accent-gradient: linear-gradient(135deg, #0891b2, #0e7490);
+            --hover-bg: #f1f5f9;
+        }
+        
+        body.dark-theme {
+            --bg-primary: #0f1219;
+            --bg-secondary: #1a1f2e;
+            --bg-card: #1a1f2e;
+            --bg-sidebar: #0a0d14;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a8c0;
+            --border-color: #1e2433;
+            --accent-color: #00f2fe;
+            --accent-gradient: linear-gradient(135deg, #00f2fe, #4facfe);
+            --hover-bg: #2a3442;
+        }
+        
+        body {
+            background: var(--bg-primary);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+        
         .app-container { display: flex; min-height: 100vh; }
-        .sidebar { width: 280px; background: #0a0d14; border-right: 1px solid #1e2433; position: fixed; height: 100vh; }
-        .sidebar-header { padding: 1.5rem; border-bottom: 1px solid #1e2433; }
-        .sidebar-header h2 { background: linear-gradient(135deg, #00f2fe, #4facfe); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .sidebar {
+            width: 280px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            position: fixed;
+            height: 100vh;
+        }
+        .sidebar-header { padding: 1.5rem; border-bottom: 1px solid var(--border-color); }
+        .sidebar-header h2 { background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .nav-menu { padding: 1rem 0; }
-        .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.5rem; color: #a0a8c0; text-decoration: none; border-left: 3px solid transparent; }
-        .nav-item:hover, .nav-item.active { background: #1a1f2e; border-left-color: #00f2fe; color: #00f2fe; }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-left: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .nav-item:hover, .nav-item.active { background: var(--hover-bg); border-left-color: var(--accent-color); color: var(--accent-color); }
         .main-content { flex: 1; margin-left: 280px; padding: 1.5rem; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #1e2433; }
-        .logout-btn { background: #1e2433; padding: 0.5rem 1rem; border-radius: 8px; border: none; color: #e0e0e0; cursor: pointer; }
-        .logout-btn:hover { background: #ff1744; color: white; }
-        .card { background: #1a1f2e; border-radius: 16px; border: 1px solid #1e2433; margin-bottom: 1.5rem; overflow: hidden; }
-        .card-header { background: #151b26; padding: 1rem 1.25rem; border-bottom: 1px solid #1e2433; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
-        .card-header i { color: #00f2fe; }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .logout-btn {
+            background: var(--bg-secondary);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+        .logout-btn:hover { background: #ef4444; color: white; }
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        .card-header {
+            background: var(--bg-secondary);
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .card-header i { color: var(--accent-color); }
         .card-body { padding: 1.25rem; }
-        .form-control { background: #2a3442; border: 1px solid #3a4557; padding: 0.7rem 1rem; border-radius: 10px; color: #e0e0e0; width: auto; }
-        .btn { background: #2a3442; border: 1px solid #3a4557; padding: 0.6rem 1.2rem; border-radius: 10px; cursor: pointer; color: #e0e0e0; }
-        .btn-primary { background: linear-gradient(135deg, #00f2fe, #4facfe); color: #0a0f1f; border: none; }
+        .form-control {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            padding: 0.7rem 1rem;
+            border-radius: 10px;
+            color: var(--text-primary);
+        }
+        .btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: var(--accent-gradient);
+            border: none;
+            color: white;
+        }
         .setting-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
-        .setting-label { width: 180px; font-weight: 500; color: #00f2fe; }
-        .current-value { background: #2a3442; padding: 0.5rem 1rem; border-radius: 8px; }
+        .setting-label { width: 180px; font-weight: 500; color: var(--accent-color); }
+        .current-value { background: var(--bg-primary); padding: 0.5rem 1rem; border-radius: 8px; }
         .radio-group, .theme-group { display: flex; gap: 1.5rem; flex-wrap: wrap; }
-        .info-text { font-size: 0.8rem; color: #6c7a91; margin-top: 0.5rem; }
+        .info-text { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem; }
         @media (max-width: 768px) { .sidebar { width: 70px; } .sidebar-header h2, .nav-item span { display: none; } .main-content { margin-left: 70px; } .setting-label { width: 100%; } }
     </style>
 </head>
@@ -55,7 +150,15 @@
             <div class="card">
                 <div class="card-header"><i class="fas fa-palette"></i> Appearance</div>
                 <div class="card-body">
-                    <div class="setting-row"><div class="setting-label">Theme:</div><div class="theme-group"><label><input type="radio" name="theme" id="themeLight" value="light"> Light</label><label><input type="radio" name="theme" id="themeDark" value="dark"> Dark</label><label><input type="radio" name="theme" id="themeSystem" value="system"> System</label></div></div>
+                    <div class="setting-row">
+                        <div class="setting-label">Theme:</div>
+                        <div class="theme-group">
+                            <label><input type="radio" name="theme" id="themeLight" value="light"> 🌞 Light</label>
+                            <label><input type="radio" name="theme" id="themeDark" value="dark"> 🌙 Dark</label>
+                            <label><input type="radio" name="theme" id="themeSystem" value="system"> 💻 System</label>
+                        </div>
+                    </div>
+                    <div class="info-text" id="themeStatus">Current theme will be saved</div>
                 </div>
             </div>
             
@@ -65,13 +168,13 @@
                     <div class="setting-row"><div class="setting-label">Override Mode:</div><div class="radio-group"><label><input type="radio" name="mode" id="modeOff" value="off" checked> Off (Real Time)</label><label><input type="radio" name="mode" id="modeOn" value="on"> On (Custom Time)</label></div></div>
                     <div class="setting-row"><div class="setting-label">Custom Time:</div><input type="time" id="customTime" step="1" value="07:30" class="form-control" style="width:150px;"></div>
                     <div class="setting-row"><div class="setting-label">Force Status:</div><select id="forceStatus" class="form-control" style="width:200px;"><option value="">Auto</option><option value="present">Force Present</option><option value="late">Force Late</option><option value="invalid">Force Invalid</option></select></div>
-                    <div style="margin-top:1rem;"><button class="btn btn-primary" id="saveBtn">Save Settings</button><button class="btn" id="resetBtn">Reset</button></div>
+                    <div style="margin-top:1rem;"><button class="btn btn-primary" id="saveBtn">Save Settings</button> <button class="btn" id="resetBtn">Reset</button></div>
                     <div id="saveMsg" class="info-text" style="margin-top:1rem;"></div>
                 </div>
             </div>
             
             <div class="card">
-                <div class="card-header"><i class="fas fa-info-circle"></i> Current Config</div>
+                <div class="card-header"><i class="fas fa-info-circle"></i> Current Configuration</div>
                 <div class="card-body">
                     <div class="setting-row"><div class="setting-label">Scanner Mode:</div><div class="current-value" id="curMode">-</div></div>
                     <div class="setting-row"><div class="setting-label">Custom Time:</div><div class="current-value" id="curTime">-</div></div>
@@ -92,57 +195,110 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+        
         if (!sessionStorage.getItem('loggedIn')) window.location.href = 'login.html';
         document.getElementById('logoutBtn').onclick = () => { auth.signOut().then(()=>{ sessionStorage.clear(); window.location.href='login.html'; }); };
         
-        function setTheme(theme){
-            document.body.classList.remove('light-theme','dark-theme');
-            if(theme==='light') document.body.classList.add('light-theme');
-            else if(theme==='dark') document.body.classList.add('dark-theme');
-            else if(theme==='system'){ const dark=window.matchMedia('(prefers-color-scheme: dark)').matches; document.body.classList.add(dark?'dark-theme':'light-theme'); }
-            localStorage.setItem('theme',theme);
+        // ============ THEME FUNCTIONS ============
+        function applyTheme(theme) {
+            const body = document.body;
+            if (theme === 'light') {
+                body.classList.remove('dark-theme');
+                localStorage.setItem('rollcall_theme', 'light');
+            } else if (theme === 'dark') {
+                body.classList.add('dark-theme');
+                localStorage.setItem('rollcall_theme', 'dark');
+            } else if (theme === 'system') {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (prefersDark) {
+                    body.classList.add('dark-theme');
+                } else {
+                    body.classList.remove('dark-theme');
+                }
+                localStorage.setItem('rollcall_theme', 'system');
+            }
         }
-        const savedTheme = localStorage.getItem('theme')||'dark';
-        if(savedTheme==='light') document.getElementById('themeLight').checked=true;
-        else if(savedTheme==='dark') document.getElementById('themeDark').checked=true;
-        else document.getElementById('themeSystem').checked=true;
-        setTheme(savedTheme);
-        document.getElementById('themeLight').onclick=()=>setTheme('light');
-        document.getElementById('themeDark').onclick=()=>setTheme('dark');
-        document.getElementById('themeSystem').onclick=()=>setTheme('system');
         
-        const SETTINGS_DOC='scanner_settings';
-        async function loadScanner(){
-            const doc = await db.collection('settings').doc(SETTINGS_DOC).get();
-            if(doc.exists){
-                const d=doc.data();
-                document.getElementById('curMode').innerHTML=d.override_mode==='on'?'ON (Custom)':'OFF (Real)';
-                document.getElementById('curTime').innerText=d.custom_time||'07:30';
-                document.getElementById('curStatus').innerText=d.force_status||'Auto';
-                if(d.override_mode==='on') document.getElementById('modeOn').checked=true;
-                else document.getElementById('modeOff').checked=true;
-                document.getElementById('customTime').value=d.custom_time||'07:30';
-                if(d.force_status) document.getElementById('forceStatus').value=d.force_status;
-            } else { document.getElementById('curMode').innerHTML='OFF (Real)'; document.getElementById('curTime').innerText='07:30'; document.getElementById('curStatus').innerText='Auto'; }
+        // Load saved theme
+        const savedTheme = localStorage.getItem('rollcall_theme') || 'light';
+        if (savedTheme === 'light') {
+            document.getElementById('themeLight').checked = true;
+            applyTheme('light');
+        } else if (savedTheme === 'dark') {
+            document.getElementById('themeDark').checked = true;
+            applyTheme('dark');
+        } else {
+            document.getElementById('themeSystem').checked = true;
+            applyTheme('system');
         }
-        async function saveScanner(){
-            const mode = document.getElementById('modeOn').checked?'on':'off';
+        
+        // Theme change listeners
+        document.getElementById('themeLight').onclick = () => applyTheme('light');
+        document.getElementById('themeDark').onclick = () => applyTheme('dark');
+        document.getElementById('themeSystem').onclick = () => applyTheme('system');
+        
+        // Listen for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            if (localStorage.getItem('rollcall_theme') === 'system') {
+                if (e.matches) {
+                    document.body.classList.add('dark-theme');
+                } else {
+                    document.body.classList.remove('dark-theme');
+                }
+            }
+        });
+        
+        // ============ SCANNER SETTINGS ============
+        const SETTINGS_DOC = 'scanner_settings';
+        
+        async function loadScannerSettings() {
+            try {
+                const doc = await db.collection('settings').doc(SETTINGS_DOC).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('curMode').innerHTML = data.override_mode === 'on' ? 'ON (Custom Time)' : 'OFF (Real Time)';
+                    document.getElementById('curTime').innerText = data.custom_time || '07:30';
+                    document.getElementById('curStatus').innerText = data.force_status || 'Auto';
+                    if (data.override_mode === 'on') document.getElementById('modeOn').checked = true;
+                    else document.getElementById('modeOff').checked = true;
+                    document.getElementById('customTime').value = data.custom_time || '07:30';
+                    if (data.force_status) document.getElementById('forceStatus').value = data.force_status;
+                } else {
+                    document.getElementById('curMode').innerHTML = 'OFF (Real Time)';
+                    document.getElementById('curTime').innerText = '07:30';
+                    document.getElementById('curStatus').innerText = 'Auto';
+                }
+            } catch(e) { console.error(e); }
+        }
+        
+        async function saveScannerSettings() {
+            const mode = document.getElementById('modeOn').checked ? 'on' : 'off';
             const time = document.getElementById('customTime').value;
             const status = document.getElementById('forceStatus').value;
-            await db.collection('settings').doc(SETTINGS_DOC).set({ override_mode: mode, custom_time: time, force_status: status, updated_at: firebase.firestore.FieldValue.serverTimestamp() });
-            document.getElementById('saveMsg').innerHTML='✅ Saved! Pi will use new settings';
-            setTimeout(()=>document.getElementById('saveMsg').innerHTML='',3000);
-            loadScanner();
+            const msg = document.getElementById('saveMsg');
+            msg.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Saving...';
+            try {
+                await db.collection('settings').doc(SETTINGS_DOC).set({
+                    override_mode: mode, custom_time: time, force_status: status,
+                    updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                msg.innerHTML = '✅ Settings saved! Raspberry Pi will use these settings.';
+                setTimeout(() => msg.innerHTML = '', 3000);
+                loadScannerSettings();
+            } catch(e) { msg.innerHTML = '❌ Error: ' + e.message; }
         }
-        async function resetScanner(){
-            document.getElementById('modeOff').checked=true;
-            document.getElementById('customTime').value='07:30';
-            document.getElementById('forceStatus').value='';
-            await saveScanner();
+        
+        async function resetScannerSettings() {
+            document.getElementById('modeOff').checked = true;
+            document.getElementById('customTime').value = '07:30';
+            document.getElementById('forceStatus').value = '';
+            await saveScannerSettings();
         }
-        document.getElementById('saveBtn').onclick=saveScanner;
-        document.getElementById('resetBtn').onclick=resetScanner;
-        loadScanner();
+        
+        document.getElementById('saveBtn').onclick = saveScannerSettings;
+        document.getElementById('resetBtn').onclick = resetScannerSettings;
+        
+        loadScannerSettings();
     </script>
 </body>
 </html>
