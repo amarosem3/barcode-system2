@@ -9,90 +9,362 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
-        /* (sama seperti sebelumnya, ringkas) */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #0a0f1f; font-family: 'Inter', sans-serif; color: white; padding: 1rem; }
-        .header { background: linear-gradient(135deg, #00f2fe, #4facfe); border-radius: 28px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
-        .header h1 { font-size: 1.8rem; display: flex; align-items: center; gap: 0.5rem; }
-        .nav-buttons { display: flex; gap: 0.8rem; flex-wrap: wrap; }
-        .nav-btn { background: rgba(255,255,255,0.15); padding: 0.5rem 1rem; border-radius: 40px; text-decoration: none; color: white; font-weight: 500; cursor: pointer; display: inline-block; }
-        .nav-btn:hover { background: rgba(255,255,255,0.3); }
-        .controls { display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 1.5rem; gap: 1rem; background: rgba(20,27,43,0.6); padding: 0.8rem 1.2rem; border-radius: 40px; }
-        .date-filter { display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; }
-        .date-filter input { background: #1e2740; border: 1px solid #2a3442; padding: 0.5rem 1rem; border-radius: 30px; color: white; }
-        .refresh-btn { background: #00f2fe; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; font-weight: 600; color: #0a0f1f; cursor: pointer; }
-        .reset-btn { background: #ff1744; color: white; }
-        .attendance-table { background: rgba(20,27,43,0.7); border-radius: 24px; overflow-x: auto; border: 1px solid #2a3442; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-        th { text-align: left; padding: 1rem; background: #1a2335; color: #a0a8c0; border-bottom: 2px solid #00f2fe; }
-        td { padding: 0.9rem 1rem; border-bottom: 1px solid #2a3442; }
-        tr:hover { background: rgba(0,242,254,0.05); }
-        .badge-present { background: rgba(0,230,118,0.2); color: #00e676; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.7rem; }
-        .badge-late { background: rgba(255,193,7,0.2); color: #ffc107; }
-        .no-data { text-align: center; padding: 3rem; color: #a0a8c0; }
-        .toast-msg { position: fixed; bottom: 20px; right: 20px; background: #00e676; color: #0a0f1f; padding: 0.5rem 1rem; border-radius: 40px; display: none; z-index: 1000; }
-        @media (max-width: 700px) { th, td { padding: 0.6rem; font-size: 0.8rem; } }
+        body {
+            background: #0f1219;
+            font-family: 'Inter', sans-serif;
+            color: #e0e0e0;
+        }
+        
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: #0a0d14;
+            border-right: 1px solid #1e2433;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #1e2433;
+        }
+        
+        .sidebar-header h2 {
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-size: 1.5rem;
+        }
+        
+        .sidebar-header p {
+            font-size: 0.75rem;
+            color: #4a5568;
+            margin-top: 0.25rem;
+        }
+        
+        .nav-menu {
+            padding: 1rem 0;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            color: #a0a8c0;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .nav-item:hover {
+            background: #1a1f2e;
+            color: #00f2fe;
+        }
+        
+        .nav-item.active {
+            background: #1a1f2e;
+            border-left-color: #00f2fe;
+            color: #00f2fe;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 1.5rem;
+        }
+        
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #1e2433;
+        }
+        
+        .page-title h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .page-title p {
+            color: #6c7a91;
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+        
+        .logout-btn {
+            background: #1e2433;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: none;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .logout-btn:hover {
+            background: #ff1744;
+            color: white;
+        }
+        
+        .controls {
+            background: #1a1f2e;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            border: 1px solid #1e2433;
+        }
+        
+        .date-filter {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .date-filter input, select {
+            background: #2a3442;
+            border: 1px solid #3a4557;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            color: #e0e0e0;
+        }
+        
+        .btn {
+            background: #2a3442;
+            border: 1px solid #3a4557;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            border-color: transparent;
+            color: #0a0f1f;
+        }
+        
+        .btn-danger {
+            background: #ff1744;
+            border-color: transparent;
+            color: white;
+        }
+        
+        .attendance-table {
+            background: #1a1f2e;
+            border-radius: 12px;
+            overflow-x: auto;
+            border: 1px solid #1e2433;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        
+        th {
+            text-align: left;
+            padding: 0.9rem 1rem;
+            background: #151b26;
+            color: #a0a8c0;
+            font-weight: 600;
+            border-bottom: 2px solid #00f2fe;
+            position: sticky;
+            top: 0;
+        }
+        
+        td {
+            padding: 0.7rem 1rem;
+            border-bottom: 1px solid #1e2433;
+        }
+        
+        tr:hover td {
+            background: rgba(0, 242, 254, 0.05);
+        }
+        
+        .date-group-header {
+            background: #252e3e;
+        }
+        
+        .date-group-header td {
+            padding: 0.5rem 1rem;
+            background: #252e3e;
+            font-weight: 600;
+            color: #00f2fe;
+        }
+        
+        .badge-present {
+            background: rgba(0, 230, 118, 0.2);
+            color: #00e676;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        .badge-late {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 3rem;
+            color: #6c7a91;
+        }
+        
+        .toast-msg {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #00e676;
+            color: #0a0f1f;
+            padding: 0.75rem 1.25rem;
+            border-radius: 10px;
+            display: none;
+            z-index: 1000;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+            .sidebar-header h2, .sidebar-header p, .nav-item span {
+                display: none;
+            }
+            .nav-item {
+                justify-content: center;
+                padding: 0.75rem;
+            }
+            .main-content {
+                margin-left: 70px;
+            }
+            th, td {
+                padding: 0.5rem;
+                font-size: 0.75rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1><i class="fas fa-list-ul"></i> Attendance Log</h1>
-        <div class="nav-buttons">
-            <a href="index.html" class="nav-btn"><i class="fas fa-home"></i> Back to Dashboard</a>
-            <button class="nav-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    <div class="app-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-qrcode"></i> ROLLCALL</h2>
+                <p>Admin Panel</p>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-item">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item active">
+                    <i class="fas fa-list-ul"></i>
+                    <span>Attendance Log</span>
+                </a>
+                <a href="lecturer.html" class="nav-item">
+                    <i class="fas fa-chalkboard-user"></i>
+                    <span>Lecturer View</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="top-bar">
+                <div class="page-title">
+                    <h1>Attendance Log</h1>
+                    <p>View and manage attendance records</p>
+                </div>
+                <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+            
+            <div class="controls">
+                <div class="date-filter">
+                    <input type="date" id="startDate"> <span>to</span> <input type="date" id="endDate">
+                    <button class="btn" onclick="loadAttendance()"><i class="fas fa-filter"></i> Filter</button>
+                    <button class="btn" onclick="resetDates()"><i class="fas fa-undo-alt"></i> Reset</button>
+                    <button class="btn btn-primary" id="downloadCsvBtn"><i class="fas fa-download"></i> Download CSV</button>
+                    <button class="btn" id="downloadWeeklyBtn"><i class="fas fa-calendar-week"></i> Weekly Report</button>
+                    <button class="btn btn-danger" id="resetWeeklyBtn"><i class="fas fa-trash-alt"></i> Reset This Week</button>
+                </div>
+                <div>Total records: <strong id="totalRecords">0</strong></div>
+            </div>
+            
+            <div class="attendance-table">
+                <table>
+                    <thead>
+                        <tr><th>#</th><th>Student Name</th><th>Student ID</th><th>IC Number</th><th>Class</th><th>Status</th><th>Scan Time</th></tr>
+                    </thead>
+                    <tbody id="attendanceBody">
+                        <tr><td colspan="7" class="no-data">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-
-    <div class="controls">
-        <div class="date-filter">
-            <input type="date" id="startDate"> to <input type="date" id="endDate">
-            <button class="refresh-btn" onclick="loadAttendance()">Filter</button>
-            <button class="refresh-btn" onclick="resetDates()">Reset Filter</button>
-            <button class="refresh-btn reset-btn" id="resetWeeklyBtn"><i class="fas fa-trash-alt"></i> Reset This Week (Sun-Thu)</button>
-        </div>
-        <div>Total records: <span id="totalRecords">0</span></div>
-    </div>
-
-    <div class="attendance-table">
-        <table>
-            <thead><tr><th>#</th><th>Student Name</th><th>Student ID</th><th>IC Number</th><th>Class</th><th>Status</th><th>Scan Time</th></tr></thead>
-            <tbody id="attendanceBody"><tr><td colspan="7" class="no-data">Loading...<\/td><\/tr><\/tbody>
-        </table>
-    <div id="toastMsg" class="toast-msg"><\/div>
+    <div id="toastMsg" class="toast-msg"></div>
 
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyAVnzKkl-GtHziHbw6SAdfftVnFkM5xm7E",
-            authDomain: "barcode-2591e.firebaseapp.com",
-            projectId: "barcode-2591e",
-            storageBucket: "barcode-2591e.firebasestorage.app",
-            messagingSenderId: "206115727840",
-            appId: "1:206115727840:web:79c3b16d866782397ba385"
+            apiKey: "AIzaSyBgqq_FVLDrlPew5mvUI84gJtNcNfGQchI",
+            authDomain: "rollcall-new-db.firebaseapp.com",
+            projectId: "rollcall-new-db",
+            storageBucket: "rollcall-new-db.firebasestorage.app",
+            messagingSenderId: "803179166995",
+            appId: "1:803179166995:web:d55ebffb4bfa934bb2eee6"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-
+        
         if (!sessionStorage.getItem('loggedIn')) window.location.href = 'login.html';
-
+        
         document.getElementById('logoutBtn').addEventListener('click', () => {
             sessionStorage.clear();
             window.location.href = 'login.html';
         });
-
+        
         let studentMap = new Map();
-
+        let allRecords = [];
+        
         async function loadStudentMap() {
             const snap = await db.collection('students').get();
             studentMap.clear();
             snap.forEach(doc => {
                 const data = doc.data();
-                studentMap.set(data.student_id, { name: data.student_name, ic: data.ic_number, class: data.class || 'N/A' });
+                studentMap.set(data.student_id, {
+                    name: data.student_name,
+                    ic: data.ic_number,
+                    class: data.class || 'N/A'
+                });
             });
         }
-
+        
         async function loadAttendance() {
             const tbody = document.getElementById('attendanceBody');
-            tbody.innerHTML = '<tr><td colspan="7" class="no-data">Loading...<\/td><\/tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="no-data">Loading...</td></tr>';
+            
             let snapshot = await db.collection('attendance').orderBy('scanned_at', 'desc').get();
             let records = [];
             snapshot.forEach(doc => {
@@ -100,107 +372,176 @@
                 let ts = data.scanned_at ? data.scanned_at.toDate() : null;
                 records.push({ id: doc.id, ...data, scanned_at: ts });
             });
+            
             let start = document.getElementById('startDate').value;
             let end = document.getElementById('endDate').value;
-            if (start) { let s = new Date(start); s.setHours(0,0,0,0); records = records.filter(r => r.scanned_at && r.scanned_at >= s); }
-            if (end) { let e = new Date(end); e.setHours(23,59,59,999); records = records.filter(r => r.scanned_at && r.scanned_at <= e); }
+            if (start) { let s = new Date(start + 'T00:00:00+08:00'); records = records.filter(r => r.scanned_at && r.scanned_at >= s); }
+            if (end) { let e = new Date(end + 'T23:59:59+08:00'); records = records.filter(r => r.scanned_at && r.scanned_at <= e); }
+            
             records.sort((a,b) => (b.scanned_at||0) - (a.scanned_at||0));
+            allRecords = records;
             document.getElementById('totalRecords').innerText = records.length;
-            if (!records.length) { tbody.innerHTML = '<tr><td colspan="7" class="no-data">No records<\/td><\/tr>'; return; }
-            let html = '';
-            records.forEach((rec, idx) => {
-                let stu = studentMap.get(rec.student_id) || {};
-                let className = stu.class || 'N/A';
-                let timeStr = rec.scanned_at ? rec.scanned_at.toLocaleString() : 'Unknown';
-                let statusBadge = rec.status === 'present' ? 'badge-present' : 'badge-late';
-                let statusText = rec.status === 'present' ? 'Present' : 'Late';
-                html += `<tr>
-                    <td>${idx+1}<\/td>
-                    <td>${stu.name || rec.student_name || '?'}<\/td>
-                    <td>${rec.student_id || '-'}<\/td>
-                    <td>${stu.ic || rec.ic_number || '-'}<\/td>
-                    <td>${className}<\/td>
-                    <td><span class="${statusBadge}"><i class="fas ${rec.status === 'present' ? 'fa-check-circle' : 'fa-clock'}"><\/i> ${statusText}<\/span><\/td>
-                    <td class="time-col">${timeStr}<\/td>
-                </tr>`;
+            
+            if (!records.length) { tbody.innerHTML = '<tr><td colspan="7" class="no-data">No records</td></tr>'; return; }
+            
+            // Group by date using Malaysia time (UTC+8)
+            const grouped = {};
+            records.forEach(rec => {
+                let dateKey = 'Unknown';
+                if (rec.scanned_at) {
+                    const malaysiaDate = new Date(rec.scanned_at.getTime() + (8 * 60 * 60 * 1000));
+                    dateKey = malaysiaDate.toISOString().split('T')[0];
+                }
+                if (!grouped[dateKey]) grouped[dateKey] = [];
+                grouped[dateKey].push(rec);
             });
+            
+            const sortedDates = Object.keys(grouped).sort().reverse();
+            let html = '';
+            let counter = 1;
+            
+            for (const date of sortedDates) {
+                const dayRecords = grouped[date];
+                const displayDate = new Date(date + 'T00:00:00+08:00').toLocaleDateString(undefined, { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+                html += `<tr class="date-group-header"><td colspan="7"><i class="fas fa-calendar-day"></i> ${displayDate} (${dayRecords.length} records)</td></tr>`;
+                
+                dayRecords.forEach(rec => {
+                    let stu = studentMap.get(rec.student_id) || {};
+                    let className = stu.class || 'N/A';
+                    let displayTime = rec.scanned_at ? new Date(rec.scanned_at.getTime() + (8 * 60 * 60 * 1000)).toLocaleTimeString() : 'Unknown';
+                    let statusBadge = rec.status === 'present' ? 'badge-present' : 'badge-late';
+                    let statusText = rec.status === 'present' ? 'Present' : 'Late';
+                    let statusIcon = rec.status === 'present' ? 'fa-check-circle' : 'fa-clock';
+                    
+                    html += `<tr>
+                        <td>${counter++}</td>
+                        <td>${escapeHtml(stu.name || rec.student_name || '?')}</td>
+                        <td>${escapeHtml(rec.student_id || '-')}</td>
+                        <td>${escapeHtml(stu.ic || rec.ic_number || '-')}</td>
+                        <td>${escapeHtml(className)}</td>
+                        <td><span class="${statusBadge}"><i class="fas ${statusIcon}"></i> ${statusText}</span></td>
+                        <td>${displayTime}</td>
+                    </tr>`;
+                });
+            }
             tbody.innerHTML = html;
         }
-
-        function resetDates() {
-            document.getElementById('startDate').value = '';
-            document.getElementById('endDate').value = '';
-            loadAttendance();
-        }
-
-        // Helper: get start (Sunday) and end (Thursday) of current week
-        function getCurrentWeekRange() {
-            const now = new Date();
-            const day = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-            // Sunday of this week
-            const sunday = new Date(now);
-            sunday.setDate(now.getDate() - day);
-            sunday.setHours(0,0,0,0);
-            // Thursday of this week (Sunday + 4 days)
-            const thursday = new Date(sunday);
-            thursday.setDate(sunday.getDate() + 4);
-            thursday.setHours(23,59,59,999);
-            return { start: sunday, end: thursday };
-        }
-
-        // Reset weekly: delete all attendance records for current week (Sunday to Thursday)
-        async function resetWeeklyAttendance() {
-            if (!confirm('⚠️ WARNING: This will DELETE ALL attendance records for THIS WEEK (Sunday to Thursday). This action cannot be undone. Proceed?')) return;
-            const { start, end } = getCurrentWeekRange();
-            const snapshot = await db.collection('attendance')
-                .where('scanned_at', '>=', start)
-                .where('scanned_at', '<=', end)
-                .get();
-            if (snapshot.empty) {
-                showToast('No records found for this week.');
-                return;
-            }
-            const batch = db.batch();
-            snapshot.docs.forEach(doc => batch.delete(doc.ref));
-            await batch.commit();
-            showToast(`✅ Deleted ${snapshot.size} attendance records for this week (Sun-Thu).`);
-            await loadAttendance();
-        }
-
+        
+        function escapeHtml(str) { if (!str) return ''; return String(str).replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+        
+        function resetDates() { document.getElementById('startDate').value = ''; document.getElementById('endDate').value = ''; loadAttendance(); }
+        
         function showToast(msg) {
             const toast = document.getElementById('toastMsg');
             toast.innerText = msg;
             toast.style.display = 'block';
-            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+            setTimeout(() => toast.style.display = 'none', 3000);
         }
-
-        // Auto reset on Thursday 23:59:59
-        function scheduleAutoReset() {
-            const now = new Date();
-            const nextThursday = new Date();
-            const day = now.getDay(); // 0 Sun, 1 Mon, ..., 4 Thu, 5 Fri, 6 Sat
-            let daysUntilThursday = (4 - day + 7) % 7;
-            if (daysUntilThursday === 0 && now.getHours() >= 23) {
-                // if today is Thursday and past 23:00, schedule for next week
-                daysUntilThursday = 7;
-            }
-            nextThursday.setDate(now.getDate() + daysUntilThursday);
-            nextThursday.setHours(23, 59, 0, 0);
-            const timeToReset = nextThursday - now;
-            setTimeout(() => {
-                resetWeeklyAttendance();
-                setInterval(() => resetWeeklyAttendance(), 7 * 24 * 60 * 60 * 1000);
-            }, timeToReset);
-            console.log(`Auto reset scheduled at ${nextThursday.toLocaleString()}`);
-        }
-
-        document.getElementById('resetWeeklyBtn').addEventListener('click', resetWeeklyAttendance);
-
-        loadStudentMap().then(() => {
-            loadAttendance();
-            scheduleAutoReset();
+        
+        // Download CSV
+        document.getElementById('downloadCsvBtn').addEventListener('click', () => {
+            if (!allRecords.length) { showToast('No data to export'); return; }
+            let csvRows = [['Student Name', 'Student ID', 'IC Number', 'Class', 'Status', 'Date', 'Scan Time']];
+            allRecords.forEach(rec => {
+                let stu = studentMap.get(rec.student_id) || {};
+                let date = rec.scanned_at ? new Date(rec.scanned_at.getTime() + (8 * 60 * 60 * 1000)).toLocaleDateString() : '';
+                let time = rec.scanned_at ? new Date(rec.scanned_at.getTime() + (8 * 60 * 60 * 1000)).toLocaleTimeString() : '';
+                csvRows.push([
+                    stu.name || rec.student_name || '',
+                    rec.student_id || '',
+                    stu.ic || rec.ic_number || '',
+                    stu.class || '',
+                    rec.status === 'present' ? 'Present' : 'Late',
+                    date,
+                    time
+                ]);
+            });
+            const csvContent = csvRows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', `attendance_${new Date().toISOString().split('T')[0]}.csv`);
+            link.click();
+            URL.revokeObjectURL(link.href);
+            showToast('CSV downloaded');
         });
-        setInterval(() => { loadStudentMap().then(loadAttendance); }, 30000);
+        
+        // Weekly Report
+        document.getElementById('downloadWeeklyBtn').addEventListener('click', async () => {
+            const now = new Date();
+            const day = now.getDay();
+            const monday = new Date(now);
+            monday.setDate(now.getDate() + (day === 0 ? -6 : 1 - day));
+            monday.setHours(0,0,0,0);
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            sunday.setHours(23,59,59,999);
+            
+            const snapshot = await db.collection('attendance')
+                .where('scanned_at', '>=', monday)
+                .where('scanned_at', '<=', sunday)
+                .get();
+            
+            const records = [];
+            snapshot.forEach(doc => records.push(doc.data()));
+            if (!records.length) { showToast('No records for this week'); return; }
+            
+            const csvRows = [['Student Name', 'Student ID', 'Class', 'Date', 'Status', 'Scan Time']];
+            for (const rec of records) {
+                let stu = studentMap.get(rec.student_id) || {};
+                let date = rec.scanned_at ? new Date(rec.scanned_at.getTime() + (8 * 60 * 60 * 1000)).toLocaleDateString() : '';
+                let time = rec.scanned_at ? new Date(rec.scanned_at.getTime() + (8 * 60 * 60 * 1000)).toLocaleTimeString() : '';
+                csvRows.push([
+                    stu.name || rec.student_name || '',
+                    rec.student_id || '',
+                    stu.class || '',
+                    date,
+                    rec.status === 'present' ? 'Present' : 'Late',
+                    time
+                ]);
+            }
+            const csvContent = csvRows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', `weekly_${monday.toISOString().split('T')[0]}.csv`);
+            link.click();
+            URL.revokeObjectURL(link.href);
+            showToast('Weekly report downloaded');
+        });
+        
+        // Reset Weekly
+        document.getElementById('resetWeeklyBtn').addEventListener('click', async () => {
+            if (!confirm('⚠️ Delete ALL attendance records for this week? Cannot undo.')) return;
+            const now = new Date();
+            const day = now.getDay();
+            const monday = new Date(now);
+            monday.setDate(now.getDate() + (day === 0 ? -6 : 1 - day));
+            monday.setHours(0,0,0,0);
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            sunday.setHours(23,59,59,999);
+            
+            const snapshot = await db.collection('attendance')
+                .where('scanned_at', '>=', monday)
+                .where('scanned_at', '<=', sunday)
+                .get();
+            if (snapshot.empty) { showToast('No records for this week'); return; }
+            
+            const batch = db.batch();
+            snapshot.docs.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+            showToast(`✅ Deleted ${snapshot.size} records for this week`);
+            await loadAttendance();
+        });
+        
+        loadStudentMap().then(loadAttendance);
+        setInterval(() => loadStudentMap().then(loadAttendance), 60000);
     </script>
 </body>
 </html>
